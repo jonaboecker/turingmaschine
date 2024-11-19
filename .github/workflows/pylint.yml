@@ -21,6 +21,10 @@ jobs:
       matrix:
         python-version: ["3.12"]
 
+    defaults:
+      run:
+        working-directory: raspberry
+
     steps:
     - name: Checkout
       uses: actions/checkout@v4
