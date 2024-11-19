@@ -3,10 +3,9 @@ This module contains the Flask application for the TMZA project.
 It defines the routes and its associated functions.
 """
 
-from flask import (Flask, render_template, send_from_directory, redirect, url_for, request, session,
-                   flash)
+from flask import (Flask, render_template, send_from_directory, request)
 
-import assets
+# import assets
 
 app = Flask(__name__)
 
@@ -53,6 +52,7 @@ def serve_service_worker():
 def page_not_found(e):
     """Renders the 404 error page."""
     # logger().warning("404 error: %s - %s", request.url, e)
+    print("404 error: %s - %s", request.url, e)
     return render_template('errorHandling/404.html'), 404
 
 
