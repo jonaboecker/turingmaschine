@@ -6,6 +6,9 @@ It defines the routes and its associated functions.
 from flask import (Flask, render_template, send_from_directory, request)
 
 # import assets
+# import hardware_control.color_sensor as cs
+# import hardware_control.light_barrier as lb
+# import hardware_control.stepper_motor as sm
 
 app = Flask(__name__)
 
