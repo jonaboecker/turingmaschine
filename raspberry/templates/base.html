@@ -1,0 +1,56 @@
+{% macro htwg_icon(title) -%}
+    <div class="flex flex-row justify-between text-white bg-slate-950 p-5">
+        <div class="flex flex-row justify-self-start gap-x-4 sm:gap-x-16">
+            <div class="m-2">
+                <a href="/"><img
+                        src="https://www.htwg-konstanz.de/fileadmin/pub/allgemein/Grafiken/logo/logo_pos.svg"
+                        width="150" height="30"
+                        alt="HTWG Logo"/></a>
+            </div>
+            <h1 class="text-white truncate font-bold sm:text-xl self-center">{{ title }}</h1>
+        </div>
+    </div>
+{%- endmacro %}
+
+{% macro flash_message() -%}
+    <link rel='stylesheet' href='{{ url_for('static', filename='flashMessage.css') }}'
+          type='text/css' media='all'/>
+    <script src="{{ url_for('static', filename='js/hideAlert.js') }}"></script>
+    {% for category, message in get_flashed_messages(with_categories=true) %}
+        <div class="{{ category }}" id="{{ message }}">
+            {{ message }}
+            <button onclick="hideElem('{{ message }}');" style="float: right;">x</button>
+        </div>
+    {% endfor %}
+{%- endmacro %}
+
+{% from "components/input_field.html" import input_field %}
+{% from "components/select_field.html" import select_field %}
+
+<!doctype html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="Robots" content="Noindex, Nofollow"/>
+    <meta name="mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-status-bar-style"
+          content="black-translucent"/>
+    <meta name="viewport"
+          content="user-scalable=no,width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+    <title>TMZA{% if fake %} TEST VERSION {% endif %} </title>
+    <link rel="shortcut icon" href="https://www.htwg-konstanz.de/favicon.png">
+    <link rel="icon" type="image/png" href="https://www.htwg-konstanz.de/favicon.png" sizes="96x96">
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='/tailwind/tailwind_style.css') }}">
+    {% block extraScript %}{% endblock %}
+</head>
+<body {% if fake or (materials and materials.fake) %}class="fakeVersion"{% endif %}>
+<div class="m-2">
+    {% block body %}{% endblock %}
+</div>
+</body>
+<footer class="m-2  bg-slate-950 p-5">
+    {% block additional_footer_links %}{% endblock %}
+    <a href="/" class="text-white hover:underline">Hauptmenü</a> &#x2022;
+</footer>
+</html>
