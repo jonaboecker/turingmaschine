@@ -1,5 +1,5 @@
 {% macro htwg_icon(title) -%}
-    <div class="flex flex-row justify-between text-white bg-slate-950 p-5">
+    <div class="flex flex-row justify-between text-white bg-slate-950 p-3 h-[85px]">
         <div class="flex flex-row justify-self-start gap-x-4 sm:gap-x-16">
             <div class="m-2">
                 <a href="/"><img
@@ -49,8 +49,10 @@
     {% block body %}{% endblock %}
 </div>
 </body>
-<footer class="m-2  bg-slate-950 p-5">
-    {% block additional_footer_links %}{% endblock %}
-    <a href="/" class="text-white hover:underline">Hauptmenü</a> &#x2022;
+<footer class="flex flex-row justify-center gap-4 m-2 bg-slate-950 p-4">
+    <a href="/" class="{% if request.path == '/' %} text-blue-600 {% else %} text-white {% endif %} hover:underline">Startseite</a> &#x2022;
+    <a href="/running" class="{% if request.path == '/running' %} text-blue-600 {% else %} text-white {% endif %} hover:underline ">Aktuelles Programm</a> &#x2022;
+    <a href="/demo" class="{% if request.path == '/demo' %} text-blue-600 {% else %} text-white {% endif %} hover:underline">Demomodus</a> &#x2022;
+    <a href="/docs" class="{% if request.path == '/docs' %} text-blue-600 {% else %} text-white {% endif %} hover:underline">Dokumentation</a> &#x2022;
 </footer>
 </html>

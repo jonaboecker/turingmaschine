@@ -16,13 +16,18 @@ app = Flask(__name__)
 # Set the secret key to some random bytes. Keep this really secret!
 # app.secret_key = os.environ.get('Flask_Secret_Key_WISSINGER')
 app.secret_key = 'this is a very secure secret key which we will definitely replace later'
+
+
 # ------------------------------------------------------------------------------------------
 
 
 @app.route('/')
 def index():
     """Renders the index page."""
-    return render_template('index.html',), 200
+    programms = ['bubblesort', 'dumbsort', 'quicksort', 'selectionsort',
+                 'insertionsort', 'mergesort', 'heapsort']
+    return render_template('index.html', programms=programms), 200
+
 
 # DOCS------------------------------------------------------------------
 @app.route('/docs')
