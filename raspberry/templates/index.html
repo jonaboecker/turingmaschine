@@ -34,13 +34,14 @@
     {{ htwg_icon("Turing Maschine zum Anfassen") }}
     <div class="grid grid-cols-1 divide-y gap-4 my-4 h-[291px]">
         <div class="flex flex-col gap-4">
-            <form action="/upload" method="post">
-                {{ input_field(id='file', label='Datei auswählen', type='file', required=true) }}
+            <form action="/upload" method="post" enctype=multipart/form-data>
+                <input type=file name=file required>
                 <button
                         class="mt-2 bg-orange-400 hover:bg-orange-700 text-white font-bold py-1.5 px-3 border border-orange-700 rounded"
                         type="submit">
                     Neues Programm hochladen
                 </button>
+            </form>
         </div>
         <div class="flex flex-col gap-4">
             <div class="mt-4">
