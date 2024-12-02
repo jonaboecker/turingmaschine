@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block extraScript %}
+
+{% endblock %}
+{% block body %}
+    {{ flash_message() }}
+    {{ htwg_icon("Na da hast du wohl scheiße programmiert...") }}
+    <div class="grid grid-cols-1 divide-y gap-4 my-4">
+    <div>
+        <h2 class="font-bold sm:text-l">Errors</h2>
+        {% for error in errors %}
+            <p>{{ error }}</p>
+        {% endfor %}
+    </div>
+        <div>
+            <h2 class="font-bold sm:text-l">Warnings</h2>
+        {% for warning in warnings %}
+            <p>{{ warning }}</p>
+        {% endfor %}
+        </div>
+        <div>
+            <h2 class="font-bold sm:text-l">Code</h2>
+            <p>Name: {{ tm_code.name }}</p>
+            <p>Init: {{ tm_code.init }}</p>
+            <p>Accepts: {{ tm_code.accept }}</p>
+            <p>Transitions:</p>
+            {% for transition in tm_code.state_transitions %}
+                <p>{{ transition }} -> {{ tm_code.state_transitions[transition] }}</p>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}

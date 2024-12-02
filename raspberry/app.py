@@ -4,9 +4,11 @@ It defines the routes and its associated functions.
 """
 
 import os
+from pprint import pprint
 from flask import (Flask, request, redirect, url_for, render_template, flash, send_from_directory)
 
 import assets
+import turingmachinesimulator_interpreter as tmsi
 
 # import assets
 # import hardware_control.color_sensor as cs
@@ -21,6 +23,7 @@ app = Flask(__name__)
 app.secret_key = 'this is a very secure secret key which we will definitely replace later'
 # Konfiguration für den Upload-Ordner
 app.config['UPLOAD_FOLDER'] = assets.UPLOAD_FOLDER
+
 
 # ------------------------------------------------------------------------------------------
 
@@ -63,10 +66,18 @@ def upload_file():
     filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
     # Check if file already exists
     if os.path.exists(filepath):
-        flash(f"Das Programm {file.filename} existiert bereits und wird überschrieben.")
+        flash(f"Das Programm {file.filename} existiert bereits und wird überschrieben.", 'error')
     file.save(filepath)
     flash(f"Datei {file.filename} erfolgreich hochgeladen!", 'success')
-    return redirect(url_for('index'))
+    # analyze file
+    # file_path = '/mnt/data/palindrome.txt'
+    tm_code = tmsi.parse_turing_machine(filepath)
+    pprint(tm_code)
+    if tm_code["errors"]:
+        return render_template('parser_error.html', errors=tm_code["errors"],
+                               warnings=tm_code["warnings"], tm_code=tm_code), 200
+    return render_template('parser_error.html',
+                           warnings=tm_code["warnings"], tm_code=tm_code), 200
 
 
 # Route, um hochgeladene Dateien aufzulisten
@@ -80,7 +91,6 @@ def upload_file():
 #
 # def download_file(filename):
 #     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
-
 
 
 # DOCS------------------------------------------------------------------
