@@ -1,5 +1,13 @@
-FROM python:3.12-slim
+FROM python:3.12-slim-bullseye
 LABEL authors="jonab"
+
+# Installiere System-Abhängigkeiten
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    gcc \
+    python3-dev \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 # Setze ein Arbeitsverzeichnis im Container
 WORKDIR /app
@@ -16,11 +24,10 @@ COPY . .
 
 # Setze die Umgebungsvariable für Flask
 ENV FLASK_APP=app.py
-ENV FLASK_RUN_HOST=0.0.0.0
 ENV FLASK_ENV=production
 
 # Öffne den Standard-Port für Flask
 EXPOSE 5000
 
-# Starte die Flask-Anwendung
-CMD ["flask", "run"]
+# Starte die Anwendung mit Gunicorn
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "app:app"]
