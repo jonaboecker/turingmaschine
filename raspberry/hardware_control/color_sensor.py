@@ -1,8 +1,8 @@
 """
 This module contains the Functions to control the Color Sensor.
 """
+import RPi.GPIO as GPIO
 import time
-from RPi import GPIO
 
 # GPIO Pins
 S2 = 23
