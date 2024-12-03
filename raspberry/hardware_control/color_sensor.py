@@ -1,3 +1,6 @@
+# pylint: disable=import-error
+# pylint: disable=no-member
+
 """
 This module contains the Functions to control the Color Sensor.
 """
