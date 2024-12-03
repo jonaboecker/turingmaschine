@@ -1,11 +1,16 @@
-# pylint: disable=import-error
-# pylint: disable=no-member
-
 """
 This module contains the Functions to control the Color Sensor.
 """
 import time
-from RPi import GPIO
+import platform
+
+# Import RPi.GPIO (just supported on RPi) or fake_rpi.RPi.GPIO based on the platform
+import importlib
+if platform.system() == "Linux":
+    GPIO = importlib.import_module("RPi.GPIO")
+else:
+    GPIO = importlib.import_module("fake_rpi.RPi.GPIO")
+
 
 # GPIO Pins
 S2 = 23
