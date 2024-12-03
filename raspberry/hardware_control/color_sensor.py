@@ -1,8 +1,8 @@
 """
 This module contains the Functions to control the Color Sensor.
 """
-import RPi.GPIO as GPIO
 import time
+from RPi import GPIO
 
 # GPIO Pins
 S2 = 23
@@ -41,7 +41,6 @@ def measure_channel(s2_val, s3_val):
     GPIO.output(S2, s2_val)
     GPIO.output(S3, s3_val)
     time.sleep(0.3)  # Short delay to stabilize the sensor
-
     start = time.time()  # Record the start time for measurement
     for _ in range(NUM_CYCLES):
         GPIO.wait_for_edge(SIGNAL, GPIO.FALLING)  # Wait for a falling edge signal
@@ -73,25 +72,26 @@ def determine_color(red, green, blue):
 def detect_color(red, green, blue, temp):
     """
     Determine the color based on the measured frequencies.
-
+    
     Args:
         red (float): Frequency of the red channel.
         green (float): Frequency of the green channel.
         blue (float): Frequency of the blue channel.
         temp (int): State variable to track object placement.
-
+        
     Returns:
         tuple: (string, int) - Detected color and updated temp value.
     """
-    if green < 7000 and blue < 7000 and red > 12000:
+    if green < 7000 > blue and red > 12000:
         return "red", 1
-    if red < 12000 and blue < 12000 and green > 12000:
+    if blue <= red < 12000 < green:
         return "green", 1
-    if green < 7000 and red < 7000 and blue > 12000:
+    if green < 7000 > red and blue > 12000:
         return "blue", 1
-    if red > 10000 and green > 10000 and blue > 10000 and temp == 1:
+    if 10000 < red <= green <= blue and temp == 1:
         return "place the object.....", 0
     return "unknown", temp
+
 
 
 def loop():
