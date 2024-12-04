@@ -33,26 +33,29 @@
     <meta charset="UTF-8"/>
     <meta name="Robots" content="Noindex, Nofollow"/>
     <meta name="mobile-web-app-capable" content="yes"/>
-    <meta name="apple-mobile-web-app-status-bar-style"
-          content="black-translucent"/>
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
     <meta name="viewport"
-          content="user-scalable=no,width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
-    <title>TMZA{% if fake %} TEST VERSION {% endif %} </title>
+          content="user-scalable=no, width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+    <title>TMZA{% if fake %} TEST VERSION {% endif %}</title>
     <link rel="shortcut icon" href="https://www.htwg-konstanz.de/favicon.png">
     <link rel="icon" type="image/png" href="https://www.htwg-konstanz.de/favicon.png" sizes="96x96">
-    <link rel="stylesheet"
-          href="{{ url_for('static', filename='/tailwind/tailwind_style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='/tailwind/tailwind_style.css') }}">
     {% block extraScript %}{% endblock %}
 </head>
-<body {% if fake or (materials and materials.fake) %}class="fakeVersion"{% endif %}>
-<div class="m-2">
+<body class="flex flex-col h-screen">
+<div class="flex-grow overflow-y-auto m-2">
     {% block body %}{% endblock %}
 </div>
-</body>
-<footer class="flex flex-row justify-center gap-4 m-2 bg-slate-950 p-4">
-    <a href="/" class="{% if request.path == '/' %} text-blue-600 {% else %} text-white {% endif %} hover:underline">Startseite</a> &#x2022;
-    <a href="/running" class="{% if request.path == '/running' %} text-blue-600 {% else %} text-white {% endif %} hover:underline ">Aktuelles Programm</a> &#x2022;
-    <a href="/demo" class="{% if request.path == '/demo' %} text-blue-600 {% else %} text-white {% endif %} hover:underline">Demomodus</a> &#x2022;
-    <a href="/docs" class="{% if request.path == '/docs' %} text-blue-600 {% else %} text-white {% endif %} hover:underline">Dokumentation</a> &#x2022;
+<footer class="flex flex-row justify-center gap-10 m-2 bg-slate-950 p-4">
+    <a href="/"
+       class="{% if request.path == '/' %} text-blue-600 {% else %} text-white {% endif %} hover:underline">Startseite</a>
+    <a href="/running"
+       class="{% if request.path == '/running' %} text-blue-600 {% else %} text-white {% endif %} hover:underline">Aktuelles
+        Programm</a>
+    <a href="/demo"
+       class="{% if request.path == '/demo' %} text-blue-600 {% else %} text-white {% endif %} hover:underline">Demomodus</a>
+    <a href="https://github.com/jonaboecker/ubiquitous-computing/wiki" target="_blank"
+       class="{% if request.path == '/docs' %} text-blue-600 {% else %} text-white {% endif %} hover:underline">Dokumentation</a>
 </footer>
+</body>
 </html>

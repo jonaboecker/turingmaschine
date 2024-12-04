@@ -80,6 +80,32 @@ def upload_file():
                            warnings=tm_code["warnings"], tm_code=tm_code), 200
 
 
+@app.route('/delete/<programm>')
+def delete_file(programm):
+    """Deletes the provided programm."""
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], programm)
+    if os.path.exists(filepath):
+        os.remove(filepath)
+        flash(f"Programm {programm} erfolgreich gelöscht!", 'success')
+    else:
+        flash(f"Programm {programm} nicht gefunden.", 'error')
+    return redirect(url_for('index'))
+
+
+@app.route('/run/<programm>')
+def run_programm(programm):
+    """Runs the provided programm."""
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], programm)
+    tm_code = tmsi.parse_turing_machine(filepath)
+    pprint(tm_code)
+    # Implement the run function here
+    if tm_code["errors"]:
+        return render_template('parser_error.html', errors=tm_code["errors"],
+                               warnings=tm_code["warnings"], tm_code=tm_code), 200
+    return render_template('running_program.html',
+                           warnings=tm_code["warnings"], tm_code=tm_code), 200
+
+
 # Route, um hochgeladene Dateien aufzulisten
 # @app.route('/files')
 # def uploaded_files():
@@ -91,19 +117,6 @@ def upload_file():
 #
 # def download_file(filename):
 #     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
-
-
-# DOCS------------------------------------------------------------------
-@app.route('/docs')
-def docs():
-    """Renders the documentation page."""
-    return render_template('docs.html'), 200
-
-
-@app.route('/docs/<doc>')
-def show_doc(doc):
-    """Renders the requested documentation .pdf."""
-    return send_from_directory(app.static_folder, f'docs/{doc}.pdf'), 200
 
 
 # PWA-------------------------------------------------------------------
