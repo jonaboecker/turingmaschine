@@ -9,11 +9,7 @@ from flask import (Flask, request, redirect, url_for, render_template, flash, se
 
 import assets
 import turingmachinesimulator_interpreter as tmsi
-
-# import assets
-# import hardware_control.color_sensor as cs
-# import hardware_control.light_barrier as lb
-# import hardware_control.stepper_motor as sm
+import dannweisstobiesnicht as sm
 
 app = Flask(__name__)
 
@@ -28,7 +24,7 @@ app.config['UPLOAD_FOLDER'] = assets.UPLOAD_FOLDER
 # ------------------------------------------------------------------------------------------
 
 
-@app.route('/')
+@app.route('/', methods=['GET'])
 def index():
     """Renders the index page."""
     programms = os.listdir(app.config['UPLOAD_FOLDER'])
@@ -80,7 +76,7 @@ def upload_file():
                            warnings=tm_code["warnings"], tm_code=tm_code), 200
 
 
-@app.route('/delete/<programm>')
+@app.route('/delete/<programm>', methods=['GET'])
 def delete_file(programm):
     """Deletes the provided programm."""
     filepath = os.path.join(app.config['UPLOAD_FOLDER'], programm)
@@ -92,18 +88,25 @@ def delete_file(programm):
     return redirect(url_for('index'))
 
 
-@app.route('/run/<programm>')
-def run_programm(programm):
-    """Runs the provided programm."""
-    filepath = os.path.join(app.config['UPLOAD_FOLDER'], programm)
+@app.route('/run/<program>', methods=['GET'])
+def run_program(program):
+    """Runs the provided program."""
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], program)
     tm_code = tmsi.parse_turing_machine(filepath)
     pprint(tm_code)
     # Implement the run function here
     if tm_code["errors"]:
         return render_template('parser_error.html', errors=tm_code["errors"],
                                warnings=tm_code["warnings"], tm_code=tm_code), 200
-    return render_template('running_program.html',
-                           warnings=tm_code["warnings"], tm_code=tm_code), 200
+    maschine = sm.StateMachine(tm_code)
+    maschine.run()
+    return redirect(url_for('running_program'))
+
+
+@app.route('/running_program', methods=['GET'])
+def running_program():
+    """Renders the running program page."""
+    return render_template('running_program.html'), 200
 
 
 # Route, um hochgeladene Dateien aufzulisten
@@ -120,13 +123,13 @@ def run_programm(programm):
 
 
 # PWA-------------------------------------------------------------------
-@app.route('/manifest.json')
+@app.route('/manifest.json', methods=['GET'])
 def serve_manifest():
     """Serves the manifest.json file."""
     return send_from_directory(app.static_folder, 'pwa/manifest.json'), 200
 
 
-@app.route('/service-worker.js')
+@app.route('/service-worker.js', methods=['GET'])
 def serve_service_worker():
     """Serves the service-worker.js file."""
     return send_from_directory(app.static_folder, 'pwa/service-worker.js'), 200

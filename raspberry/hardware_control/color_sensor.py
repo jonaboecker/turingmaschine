@@ -1,15 +1,35 @@
 """
 This module contains the Functions to control the Color Sensor.
 """
+
+# pylint: todo: disable=fixme
+
 import time
 import platform
 
 # Import RPi.GPIO (just supported on RPi) or fake_rpi.RPi.GPIO based on the platform
 import importlib
+from random import randrange
+
+import assets
+
 if platform.system() == "Linux":
     GPIO = importlib.import_module("RPi.GPIO")
 else:
     GPIO = importlib.import_module("fake_rpi.RPi.GPIO")
+
+def get_color():
+    """
+    Get the color from the color sensor.
+
+    Returns:
+        Enum: The detected color Enum('Color', [('RED', 1), ('BLUE', 2), ('BLANK', 3)]) from assets.
+    """
+    # todo: implement the color detection
+    # return random color for testing
+    random_color = assets.IO_BAND_COLORS(randrange(3))
+    print(f"Random detected and returned color: {random_color}")
+    return random_color
 
 
 # GPIO Pins
@@ -80,13 +100,13 @@ def determine_color(red, green, blue):
 def detect_color(red, green, blue, temp):
     """
     Determine the color based on the measured frequencies.
-    
+
     Args:
         red (float): Frequency of the red channel.
         green (float): Frequency of the green channel.
         blue (float): Frequency of the blue channel.
         temp (int): State variable to track object placement.
-        
+
     Returns:
         tuple: (string, int) - Detected color and updated temp value.
     """
