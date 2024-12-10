@@ -1,3 +1,7 @@
+[![License](https://img.shields.io/github/license/jonaboecker/turingmaschine?color=green)](https://cdn130.picsart.com/272563229032201.jpg?r1024x1024)
+![RepoSize](https://img.shields.io/github/repo-size/jonaboecker/turingmaschine)
+![Lines of Code](https://tokei.rs/b1/github/jonaboecker/turingmaschine)
+
 # Turingmaschine
 HTWG AIN team project TMZA with Barbara Staehle
 
@@ -33,3 +37,9 @@ docker run -p 5000:5000 flask-app:latest
 After starting, the Flask app should be accessible at [http://localhost:5000](http://localhost:5000).
 
 ---
+
+## Contributors
+| [Jona Böcker](https://github.com/jonaboecker)  | [Tobias Stöhr](https://github.com/TobiasReyEye)  | [Julian Rapp](https://github.com/Julz124)  |  [Lara Geyer](https://github.com/lara00) | [Dennis Schulze](https://github.com/l0n1y)  |
+|---|---|---|---|---|
+| ![image](https://github-readme-streak-stats.herokuapp.com/?user=jonaboecker) | ![image](https://github-readme-streak-stats.herokuapp.com/?user=TobiasReyEye)  | ![image](https://github-readme-streak-stats.herokuapp.com/?user=Julz124) | ![image](https://github-readme-streak-stats.herokuapp.com/?user=lara00)  |![image](https://github-readme-streak-stats.herokuapp.com/?user=l0n1y) |
+
