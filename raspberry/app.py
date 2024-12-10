@@ -7,8 +7,8 @@ import os
 from pprint import pprint
 from flask import (Flask, request, redirect, url_for, render_template, flash, send_from_directory)
 
-import assets
-import turingmachinesimulator_interpreter as tmsi
+from assets import UPLOAD_FOLDER, PROGRAM_LANGUAGES, ALLOWED_EXTENSIONS
+import turingmachine_interpreter as tm_interp
 import dannweisstobiesnicht as sm
 
 app = Flask(__name__)
@@ -18,7 +18,7 @@ app = Flask(__name__)
 # app.secret_key = os.environ.get('Flask_Secret_Key_WISSINGER')
 app.secret_key = 'this is a very secure secret key which we will definitely replace later'
 # Konfiguration für den Upload-Ordner
-app.config['UPLOAD_FOLDER'] = assets.UPLOAD_FOLDER
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 
 # ------------------------------------------------------------------------------------------
@@ -28,20 +28,26 @@ app.config['UPLOAD_FOLDER'] = assets.UPLOAD_FOLDER
 def index():
     """Renders the index page."""
     programms = os.listdir(app.config['UPLOAD_FOLDER'])
-    return render_template('index.html', programms=programms), 200
+    languages = [lang.value for lang in PROGRAM_LANGUAGES]
+    return render_template('index.html', languages=languages,
+                           programms=programms), 200
 
 
 # Funktion, um Dateiendungen zu prüfen
 def allowed_file(filename):
     """Checks if the file extension is allowed."""
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in assets.ALLOWED_EXTENSIONS
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
-# Route für den Upload
+# pylint: disable=too-many-return-statements
 @app.route('/upload', methods=['POST'])
 def upload_file():
     """Handles the uploaded file."""
-    print("upload_file")
+    language = PROGRAM_LANGUAGES(request.form['language'])
+    if not language:
+        flash('Keine oder unbekannte Sprache ausgewählt', 'error')
+        return redirect(request.url)
+    print(language)
     if 'file' not in request.files:
         flash('Keine Datei ausgewählt', 'error')
         return redirect(request.url)
@@ -67,7 +73,7 @@ def upload_file():
     flash(f"Datei {file.filename} erfolgreich hochgeladen!", 'success')
     # analyze file
     # file_path = '/mnt/data/palindrome.txt'
-    tm_code = tmsi.parse_turing_machine(filepath)
+    tm_code = tm_interp.parse_turing_machine(filepath, language)
     pprint(tm_code)
     if tm_code["errors"]:
         return render_template('parser_error.html', errors=tm_code["errors"],
@@ -92,7 +98,7 @@ def delete_file(programm):
 def run_program(program):
     """Runs the provided program."""
     filepath = os.path.join(app.config['UPLOAD_FOLDER'], program)
-    tm_code = tmsi.parse_turing_machine(filepath)
+    tm_code = tm_interp.parse_turing_machine(filepath)
     pprint(tm_code)
     # Implement the run function here
     if tm_code["errors"]:

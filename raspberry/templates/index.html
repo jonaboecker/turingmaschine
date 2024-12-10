@@ -27,8 +27,12 @@
                     <input class="block w-full text-lg text-gray-900 border border-gray-300
                     rounded-lg cursor-pointer bg-gray-50 focus:outline-none" id="file"
                            name=file required type="file" accept=".txt">
-                    <p class=" text-sm text-gray-500" id="file_input_help">
+                    <p class="mb-2 text-sm text-gray-500" id="file_input_help">
                         Erlaubter Dateityp .txt</p>
+                    {{ select_field(id='language',
+                                    label='Sprache',
+                                    values=languages,
+                                    required=true) }}
                     <button
                             class="mt-2 bg-orange-400 hover:bg-orange-700 text-white font-bold
                             py-1.5 px-3 border border-orange-700 rounded"
@@ -40,7 +44,10 @@
         </div>
         <div class="flex flex-col gap-4">
             <div class="mt-4">
-                {{ select_field(id='programm', label='Programm', values=programms, required=true) }}
+                {{ select_field(id='programm',
+                                label='Programm',
+                                values=programms,
+                                required=true) }}
             </div>
 
             <div class="flex flex-row gap-x-4">

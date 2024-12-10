@@ -7,6 +7,13 @@ from enum import Enum
 UPLOAD_FOLDER = 'static/uploads'
 ALLOWED_EXTENSIONS = {'txt'}
 
+# possible program languages
+PROGRAM_LANGUAGES = Enum('Language',
+                         [
+                             ('COM', 'turingmachinesimulator.com'),
+                             ('IO', 'turingmachine.io')
+                         ])
+
 # allowed symbols for the turing machine
 ALLOWED_SYMBOLS = {'0', '1', '_'}
 
