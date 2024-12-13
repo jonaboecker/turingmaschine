@@ -3,18 +3,6 @@
     <script src="{{ url_for('static', filename='js/programm_selection.js') }}"></script>
     <!--PWA-->
     <meta name="theme-color" content="#020617"/>
-    <link rel="icon" href="{{ url_for('static', filename='pwa/icons/ios/144.png') }}"
-          type="image/png">
-    <link rel="icon" href="{{ url_for('static', filename='pwa/icons/ios/192.png') }}"
-          type="image/png">
-    <link rel="icon" href="{{ url_for('static', filename='pwa/icons/ios/512.png') }}"
-          type="image/png">
-    <link rel="apple-touch-icon" href="{{ url_for('static', filename='pwa/icons/ios/144.png') }}"
-          type="image/png">
-    <link rel="apple-touch-icon" href="{{ url_for('static', filename='pwa/icons/ios/192.png') }}"
-          type="image/png">
-    <link rel="apple-touch-icon" href="{{ url_for('static', filename='pwa/icons/ios/512.png') }}"
-          type="image/png">
     <link rel="manifest" href="{{ url_for('static', filename='pwa/manifest.json') }}">
     <script>
         if ('serviceWorker' in navigator) {
@@ -32,20 +20,34 @@
 {% block body %}
     {{ flash_message() }}
     {{ htwg_icon("Turing Maschine zum Anfassen") }}
-    <div class="grid grid-cols-1 divide-y gap-4 my-4 h-[291px]">
+    <div class="grid grid-cols-1 divide-y gap-4 my-4">
         <div class="flex flex-col gap-4">
             <form action="/upload" method="post" enctype=multipart/form-data>
-                <input type=file name=file required>
-                <button
-                        class="mt-2 bg-orange-400 hover:bg-orange-700 text-white font-bold py-1.5 px-3 border border-orange-700 rounded"
-                        type="submit">
-                    Neues Programm hochladen
-                </button>
+                <div>
+                    <input class="block w-full text-lg text-gray-900 border border-gray-300
+                    rounded-lg cursor-pointer bg-gray-50 focus:outline-none" id="file"
+                           name=file required type="file" accept=".txt">
+                    <p class="mb-2 text-sm text-gray-500" id="file_input_help">
+                        Erlaubter Dateityp .txt</p>
+                    {{ select_field(id='language',
+                                    label='Sprache',
+                                    values=languages,
+                                    required=true) }}
+                    <button
+                            class="mt-2 bg-orange-400 hover:bg-orange-700 text-white font-bold
+                            py-1.5 px-3 border border-orange-700 rounded"
+                            type="submit">
+                        Neues Programm hochladen
+                    </button>
+                </div>
             </form>
         </div>
         <div class="flex flex-col gap-4">
             <div class="mt-4">
-                {{ select_field(id='programm', label='Programm', values=programms, required=true) }}
+                {{ select_field(id='programm',
+                                label='Programm',
+                                values=programms,
+                                required=true) }}
             </div>
 
             <div class="flex flex-row gap-x-4">
@@ -53,7 +55,7 @@
                     <button
                             class="bg-orange-400 hover:bg-orange-700 text-white font-bold py-1.5 px-3
                     border border-orange-700 rounded"
-                            onclick="programm_selection('start')">
+                            onclick="programm_selection('run')">
                         Start
                     </button>
                 </div>

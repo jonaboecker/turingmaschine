@@ -1,6 +1,13 @@
-Flask~=3.0.3
+# server:
+Flask~=3.1.0
 gunicorn~=23.0.0
-pylint~=3.3.1
+
+# Hardware:
+RPi.GPIO~=0.7.1; platform_system == "Linux"
+fake-rpi~=0.7.1; platform_system != "Linux"
+
+# linters:
+pylint~=3.3.2
 
 # Required secrets:
 # app.secret_key

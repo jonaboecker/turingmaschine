@@ -1,26 +1,33 @@
-FROM python:3.12-slim
+FROM python:3.12-slim-bullseye
 LABEL authors="jonab"
 
-# Setze ein Arbeitsverzeichnis im Container
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    gcc \
+    python3-dev \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set a working directory in the container
 WORKDIR /app
 
-# Kopiere die Abhängigkeitsdatei
+# Copy the dependency file
 COPY requirements.txt requirements.txt
 
-# Installiere die Abhängigkeiten
+# Install the dependencies
 RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir -r requirements.txt
 
-# Kopiere den restlichen Code ins Arbeitsverzeichnis
+# English: Copy the rest of the code into the working directory
 COPY . .
 
-# Setze die Umgebungsvariable für Flask
+# Set the environment variable for Flask
 ENV FLASK_APP=app.py
-ENV FLASK_RUN_HOST=0.0.0.0
 ENV FLASK_ENV=production
 
-# Öffne den Standard-Port für Flask
+# Open the default port for Flask
 EXPOSE 5000
 
-# Starte die Flask-Anwendung
-CMD ["flask", "run"]
+# Start the application with Gunicorn
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "app:app"]

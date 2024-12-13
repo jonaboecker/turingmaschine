@@ -7,13 +7,9 @@ import os
 from pprint import pprint
 from flask import (Flask, request, redirect, url_for, render_template, flash, send_from_directory)
 
-import assets
-import turingmachinesimulator_interpreter as tmsi
-
-# import assets
-# import hardware_control.color_sensor as cs
-# import hardware_control.light_barrier as lb
-# import hardware_control.stepper_motor as sm
+from assets import UPLOAD_FOLDER, PROGRAM_LANGUAGES, ALLOWED_EXTENSIONS
+import turingmachine_interpreter as tm_interp
+import dannweisstobiesnicht as sm
 
 app = Flask(__name__)
 
@@ -22,30 +18,36 @@ app = Flask(__name__)
 # app.secret_key = os.environ.get('Flask_Secret_Key_WISSINGER')
 app.secret_key = 'this is a very secure secret key which we will definitely replace later'
 # Konfiguration für den Upload-Ordner
-app.config['UPLOAD_FOLDER'] = assets.UPLOAD_FOLDER
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 
 # ------------------------------------------------------------------------------------------
 
 
-@app.route('/')
+@app.route('/', methods=['GET'])
 def index():
     """Renders the index page."""
     programms = os.listdir(app.config['UPLOAD_FOLDER'])
-    return render_template('index.html', programms=programms), 200
+    languages = [lang.value for lang in PROGRAM_LANGUAGES]
+    return render_template('index.html', languages=languages,
+                           programms=programms), 200
 
 
 # Funktion, um Dateiendungen zu prüfen
 def allowed_file(filename):
     """Checks if the file extension is allowed."""
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in assets.ALLOWED_EXTENSIONS
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
-# Route für den Upload
+# pylint: disable=too-many-return-statements
 @app.route('/upload', methods=['POST'])
 def upload_file():
     """Handles the uploaded file."""
-    print("upload_file")
+    language = PROGRAM_LANGUAGES(request.form['language'])
+    if not language:
+        flash('Keine oder unbekannte Sprache ausgewählt', 'error')
+        return redirect(request.url)
+    print(language)
     if 'file' not in request.files:
         flash('Keine Datei ausgewählt', 'error')
         return redirect(request.url)
@@ -71,13 +73,46 @@ def upload_file():
     flash(f"Datei {file.filename} erfolgreich hochgeladen!", 'success')
     # analyze file
     # file_path = '/mnt/data/palindrome.txt'
-    tm_code = tmsi.parse_turing_machine(filepath)
+    tm_code = tm_interp.parse_turing_machine(filepath, language)
     pprint(tm_code)
     if tm_code["errors"]:
         return render_template('parser_error.html', errors=tm_code["errors"],
                                warnings=tm_code["warnings"], tm_code=tm_code), 200
     return render_template('parser_error.html',
                            warnings=tm_code["warnings"], tm_code=tm_code), 200
+
+
+@app.route('/delete/<programm>', methods=['GET'])
+def delete_file(programm):
+    """Deletes the provided programm."""
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], programm)
+    if os.path.exists(filepath):
+        os.remove(filepath)
+        flash(f"Programm {programm} erfolgreich gelöscht!", 'success')
+    else:
+        flash(f"Programm {programm} nicht gefunden.", 'error')
+    return redirect(url_for('index'))
+
+
+@app.route('/run/<program>', methods=['GET'])
+def run_program(program):
+    """Runs the provided program."""
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], program)
+    tm_code = tm_interp.parse_turing_machine(filepath)
+    pprint(tm_code)
+    # Implement the run function here
+    if tm_code["errors"]:
+        return render_template('parser_error.html', errors=tm_code["errors"],
+                               warnings=tm_code["warnings"], tm_code=tm_code), 200
+    maschine = sm.StateMachine(tm_code)
+    maschine.run()
+    return redirect(url_for('running_program'))
+
+
+@app.route('/running_program', methods=['GET'])
+def running_program():
+    """Renders the running program page."""
+    return render_template('running_program.html'), 200
 
 
 # Route, um hochgeladene Dateien aufzulisten
@@ -93,27 +128,14 @@ def upload_file():
 #     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 
-# DOCS------------------------------------------------------------------
-@app.route('/docs')
-def docs():
-    """Renders the documentation page."""
-    return render_template('docs.html'), 200
-
-
-@app.route('/docs/<doc>')
-def show_doc(doc):
-    """Renders the requested documentation .pdf."""
-    return send_from_directory(app.static_folder, f'docs/{doc}.pdf'), 200
-
-
 # PWA-------------------------------------------------------------------
-@app.route('/manifest.json')
+@app.route('/manifest.json', methods=['GET'])
 def serve_manifest():
     """Serves the manifest.json file."""
     return send_from_directory(app.static_folder, 'pwa/manifest.json'), 200
 
 
-@app.route('/service-worker.js')
+@app.route('/service-worker.js', methods=['GET'])
 def serve_service_worker():
     """Serves the service-worker.js file."""
     return send_from_directory(app.static_folder, 'pwa/service-worker.js'), 200

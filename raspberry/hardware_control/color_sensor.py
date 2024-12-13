@@ -1,24 +1,47 @@
-# pylint: disable=import-error
-# pylint: disable=no-member
-
 """
 This module contains the Functions to control the Color Sensor.
 """
+
+# pylint: todo: disable=fixme
+
 import time
-from RPi import GPIO
+import platform
+
+# Import RPi.GPIO (just supported on RPi) or fake_rpi.RPi.GPIO based on the platform
+import importlib
+from random import randrange
+
+import assets
+
+if platform.system() == "Linux":
+    GPIO = importlib.import_module("RPi.GPIO")
+else:
+    GPIO = importlib.import_module("fake_rpi.RPi.GPIO")
+
+def get_color():
+    """
+    Get the color from the color sensor.
+
+    Returns:
+        Enum: The detected color Enum('Color', [('RED', 1), ('BLUE', 2), ('BLANK', 3)]) from assets.
+    """
+    # todo: implement the color detection
+    # return random color for testing
+    random_color = assets.IO_BAND_COLORS(randrange(3))
+    print(f"Random detected and returned color: {random_color}")
+    return random_color
 
 # GPIO Pins
-S2 = 23
-S3 = 24
-SIGNAL = 25
+S2 = 22
+S3 = 23
+SIGNAL = 18
 
 # Constants
-NUM_CYCLES = 10
+NUM_CYCLES = 25
 
 # Color thresholds
-RED_THRESHOLD = 12000
-GREEN_THRESHOLD = 12000
-BLUE_THRESHOLD = 12000
+RED_THRESHOLD = 1500
+BLUE_THRESHOLD = 1500
 
 
 def setup():
@@ -51,68 +74,39 @@ def measure_channel(s2_val, s3_val):
     return NUM_CYCLES / duration  # Calculate the frequency
 
 
-def determine_color(red, green, blue):
+def determine_color(red, blue):
     """
     Determine the dominant color based on measured frequencies.
 
     Args:
-        red (float): Frequency of the red channel.
-        green (float): Frequency of the green channel.
-        blue (float): Frequency of the blue channel.
-
-    Returns:
-        tuple: (string, int) - Detected color and updated temp value.
-    """
-    if red > green and red > blue and red > RED_THRESHOLD:
-        return "red", 1
-    if green > red and green > blue and green > GREEN_THRESHOLD:
-        return "green", 1
-    if blue > red and blue > green and blue > BLUE_THRESHOLD:
-        return "blue", 1
-    return "unknown", 0
-
-
-def detect_color(red, green, blue, temp):
-    """
-    Determine the color based on the measured frequencies.
-    
-    Args:
-        red (float): Frequency of the red channel.
-        green (float): Frequency of the green channel.
+        red (float): Frequency of the red channel..
         blue (float): Frequency of the blue channel.
         temp (int): State variable to track object placement.
-        
+
     Returns:
         tuple: (string, int) - Detected color and updated temp value.
     """
-    if green < 7000 > blue and red > 12000:
+    if red > blue and red > RED_THRESHOLD:
         return "red", 1
-    if blue <= red < 12000 < green:
-        return "green", 1
-    if green < 7000 > red and blue > 12000:
+    if blue > red  and blue > BLUE_THRESHOLD:
         return "blue", 1
-    if 10000 < red <= green <= blue and temp == 1:
-        return "place the object.....", 0
-    return "unknown", temp
-
+    return "blank", 0
 
 
 def loop():
     """
     Main loop to measure the color channels and detect the color.
     """
-    temp = 1
     while True:
         # Measure all color channels
         red = measure_channel(GPIO.LOW, GPIO.LOW)
-        green = measure_channel(GPIO.HIGH, GPIO.HIGH)
         blue = measure_channel(GPIO.LOW, GPIO.HIGH)
 
         # Detect color
-        color, temp = detect_color(red, green, blue, temp)
+        color = determine_color(red, blue)
 
         # Output detected color and frequencies
-        print(f"Detected color: {color} (R: {red:.2f}, G: {green:.2f}, B: {blue:.2f})")
+        print(f"Detected color: {color} (R: {red:.2f}, B: {blue:.2f})")
 
 
 def endprogram():
