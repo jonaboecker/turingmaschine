@@ -14,9 +14,6 @@ PROGRAM_LANGUAGES = Enum('Language',
                              ('IO', 'turingmachine.io')
                          ])
 
-# allowed symbols for the turing machine
-ALLOWED_SYMBOLS = {'0', '1', '_'}
-
 # colors of the io band
 IO_BAND_COLORS = Enum('Color', [('RED', 0), ('BLUE', 1), ('BLANK', 2)])
 

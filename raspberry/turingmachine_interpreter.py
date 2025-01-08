@@ -4,11 +4,14 @@ This module contains the interpreter for the turingmachine-program syntax.
 import re
 import os
 from collections import defaultdict
-from assets import ALLOWED_SYMBOLS, PROGRAM_LANGUAGES
+
+import assets
+from assets import PROGRAM_LANGUAGES
 
 import util
 
-def parse_turing_machine(file_path, language:PROGRAM_LANGUAGES = PROGRAM_LANGUAGES.COM):
+
+def parse_turing_machine(file_path, language: PROGRAM_LANGUAGES = PROGRAM_LANGUAGES.COM):
     """
     Parses a Turing machine file for different syntax styles.
 
@@ -86,25 +89,19 @@ def _parse_io_syntax(lines, turing_machine):
             # Transition definition
             if current_state and ":" in line:
                 symbol, instruction = map(str.strip, line.split(":", 1))
-                symbol = _map_io_symbol(symbol)
-
-                if symbol not in ALLOWED_SYMBOLS:
-                    turing_machine["errors"].append(
-                        f"Symbol '{symbol}' ist nicht erlaubt. Erlaubt sind nur {ALLOWED_SYMBOLS}."
-                    )
-                    continue
 
                 # Parse instruction
                 transition = _parse_io_instruction(instruction, current_state, symbol)
                 if transition:
-                    turing_machine["state_transitions"][(current_state, symbol)] = transition
+                    turing_machine["state_transitions"][
+                        (current_state, _map_symbol(symbol))] = transition
                 else:
                     turing_machine["errors"].append(f"Ungültige Anweisung: {line}")
 
 
-def _map_io_symbol(symbol):
+def _map_symbol(symbol: str):
     """
-    Maps symbols in io syntax to default syntax.
+    Maps symbols in syntax to symbol Enum.
 
     Args:
         symbol (str): The symbol in io syntax.
@@ -112,8 +109,19 @@ def _map_io_symbol(symbol):
     Returns:
         str: The mapped symbol.
     """
+
     symbol = symbol.strip("'")
-    return "_" if symbol == " " else symbol
+    symbol = symbol.strip()
+
+    match symbol:
+        case "0":
+            return assets.IO_BAND_COLORS.RED
+        case "1":
+            return assets.IO_BAND_COLORS.BLUE
+        case "_" | '':
+            return assets.IO_BAND_COLORS.BLANK
+        case _:
+            return symbol
 
 
 def _parse_io_instruction(instruction, current_state, symbol):
@@ -126,7 +134,7 @@ def _parse_io_instruction(instruction, current_state, symbol):
     if instruction in move_map:
         return {
             "new_state": current_state,
-            "write_symbol": symbol,
+            "write_symbol": _map_symbol(symbol),
             "move": move_map[instruction]
         }
 
@@ -136,7 +144,7 @@ def _parse_io_instruction(instruction, current_state, symbol):
         parts = dict(item.strip().split(":") for item in instruction.split(","))
         return {
             "new_state": parts.get("L", parts.get("R", current_state)).strip(),
-            "write_symbol": _map_io_symbol(parts.get("write", symbol).strip()),
+            "write_symbol": _map_symbol(parts.get("write", symbol)),
             "move": move_map.get("L", "<") if "L" in parts else move_map.get("R", ">")
         }
 
@@ -178,9 +186,9 @@ def _parse_com_syntax(lines, turing_machine):
                 turing_machine["errors"].append(f"Syntaxfehler (Zeile {line_number}): {string}")
                 string = ""
                 continue
-            turing_machine["state_transitions"][(match[0], match[1])] = {
+            turing_machine["state_transitions"][(match[0], _map_symbol(match[1]))] = {
                 "new_state": match[2],
-                "write_symbol": match[3],
+                "write_symbol": _map_symbol(match[3]),
                 "move": match[4]
             }
             string = ""

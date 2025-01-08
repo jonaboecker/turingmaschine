@@ -4,6 +4,7 @@ The file contains Generally used things.
 
 import assets
 
+
 # pylint: disable=too-many-branches
 def semantic_analyzer(turing_machine):
     """
@@ -64,5 +65,15 @@ def semantic_analyzer(turing_machine):
         if any(key[0] == accept_state for key in transitions.keys()):
             turing_machine["errors"].append(
                 f"Akzeptier-Zustand '{accept_state}' hat ausgehende Transitionen.")
+
+    for transition in transitions.keys():
+        if transition[1] not in assets.IO_BAND_COLORS:
+            turing_machine["errors"].append(
+                f"Zeichen '{transition[1]}' ist nicht erlaubt")
+    for transition in transitions.values():
+        if transition["write_symbol"] not in assets.IO_BAND_COLORS:
+            turing_machine["errors"].append(
+                f"Zeichen '{transition["write_symbol"]}' ist nicht erlaubt. "
+                f"Bitte verewende nur '0', '1', '_', ' '.")
 
     return turing_machine

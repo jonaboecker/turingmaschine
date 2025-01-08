@@ -11,7 +11,9 @@ from assets import UPLOAD_FOLDER, PROGRAM_LANGUAGES, ALLOWED_EXTENSIONS
 import turingmachine_interpreter as tm_interp
 import dannweisstobiesnicht as sm
 
+# pylint: disable=global-statement
 app = Flask(__name__)
+MACHINE = None
 
 # ------------------------------------------------------------------------------------------
 # Set the secret key to some random bytes. Keep this really secret!
@@ -93,25 +95,38 @@ def delete_file(programm):
         flash(f"Programm {programm} nicht gefunden.", 'error')
     return redirect(url_for('index'))
 
-
-@app.route('/run/<program>', methods=['GET'])
-def run_program(program):
+@app.route('/run', methods=['POST'])
+def run_program():
     """Runs the provided program."""
+    global MACHINE
+    program = request.form['program']
+    if not program:
+        flash('Kein Programm ausgewählt', 'error')
+        return redirect(url_for('index'))
+    language = PROGRAM_LANGUAGES(request.form['language'])
+    if not language:
+        flash('Keine oder unbekannte Sprache ausgewählt', 'error')
+        return redirect(url_for('index'))
+    print(language)
     filepath = os.path.join(app.config['UPLOAD_FOLDER'], program)
-    tm_code = tm_interp.parse_turing_machine(filepath)
+    tm_code = tm_interp.parse_turing_machine(filepath, language)
     pprint(tm_code)
     # Implement the run function here
     if tm_code["errors"]:
         return render_template('parser_error.html', errors=tm_code["errors"],
                                warnings=tm_code["warnings"], tm_code=tm_code), 200
-    maschine = sm.StateMachine(tm_code)
-    maschine.run()
+    MACHINE = sm.StateMachine(tm_code)
+    MACHINE.run()
     return redirect(url_for('running_program'))
 
 
 @app.route('/running_program', methods=['GET'])
 def running_program():
     """Renders the running program page."""
+    # global MACHINE
+    if not MACHINE:
+        flash('Was soll ich denn anzeigen, wenn sich noch nichts bewegt?', 'error')
+        return redirect(url_for('index'))
     return render_template('running_program.html'), 200
 
 
