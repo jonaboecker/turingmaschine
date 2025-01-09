@@ -12,14 +12,26 @@ import hardware_control.light_barrier as lb
 class StateMachine:
     """
     This class is used to control the robot with the Turing machine.
+    :arg tm_code: turing_machine = {
+        "name": "",
+        "init": "",
+        "accept": set(),
+        "state_transitions": defaultdict(dict),
+        "errors": [],
+        "warnings": []
+    }
     """
     def __init__(self, tm_code):
         self.stepper = sm.StepperMotorController()
         self.accept_states = tm_code['accept']
         self.current_state = tm_code['init']
         self.state_transitions = tm_code['state_transitions']
+        self.program_name = tm_code['name']
         self.errors = []
-        self.speed = 1
+        self.speed = 5
+        self.steps = 0
+        self.running = False
+        self.pause = False
 
 
     def home_robot(self):
@@ -65,6 +77,7 @@ class StateMachine:
             self.errors.append("Dein Turing Programm ist zu groß für das IO-Band.")
             print("Band ended")
             return False
+        self.steps += 1
         return True
 
     def run(self):
@@ -74,6 +87,7 @@ class StateMachine:
             bool: True if the tm reached an accept state,
                   False if there accept wasn't reached, reason is saved in self.errors.
         """
+        self.running = True
         self.home_robot()
         if not self.go_to_first_color():
             print("Blank io_band, Robot would move out of the LED strip")
@@ -85,4 +99,5 @@ class StateMachine:
                 print(self.errors)
                 return False
         print("Robot reached an accept state")
+        self.running = False
         return True

@@ -127,7 +127,16 @@ def running_program():
     if not MACHINE:
         flash('Was soll ich denn anzeigen, wenn sich noch nichts bewegt?', 'error')
         return redirect(url_for('index'))
-    return render_template('running_program.html'), 200
+    infos = {
+        'program_name': MACHINE.program_name,
+        'state': MACHINE.current_state,
+        'step': MACHINE.steps,
+        'run': MACHINE.running,
+        'pause': MACHINE.pause,
+        'speed': MACHINE.speed,
+        'errors': MACHINE.errors
+    }
+    return render_template('running_program.html', infos=infos), 200
 
 
 # Route, um hochgeladene Dateien aufzulisten

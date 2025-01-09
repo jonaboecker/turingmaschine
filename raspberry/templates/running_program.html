@@ -6,24 +6,35 @@
 
     <div class="flex flex-col items-center justify-center my-8">
         <!-- Title -->
-        <h1 class="text-2xl font-bold mb-4">Binary numbers divisible by 3</h1>
+        <h1 class="text-2xl font-bold mb-4">{{ infos.program_name }}</h1>
+
+        <!-- Errors -->
+        {% for error in infos.errors %}
+            <p class="text-red-500">{{ infos.error }}</p>
+        {% endfor %}
 
         <!-- State display -->
-        <div class="text-lg font-medium">State: <span class="italic">None</span></div>
-        <div class="text-sm text-gray-500">Steps: 0</div>
+        <div class="text-lg font-medium">State: <span class="italic">{{ infos.state }}</span></div>
+        <div class="text-sm text-gray-500">Steps: <span class="italic">{{ infos.step }}</span></div>
 
         <!-- Controls -->
         <div class="flex items-center gap-4 mt-4">
-            <button class="bg-blue-500 text-white px-4 py-2 rounded">&#9654; Play</button>
-            <button class="bg-gray-300 px-4 py-2 rounded">&#9208;Pause</button>
-            <button class="bg-gray-300 px-4 py-2 rounded">&#9209;Stop</button>
+            <button class="{% if infos.run and not infos.pause %} bg-blue-500 {% else %} bg-gray-300 {% endif %}
+            bg-blue-500 text-white px-4 py-2 rounded">&#9654; Play
+            </button>
+            <button class="{% if infos.pause %} bg-blue-500 {% else %} bg-gray-300 {% endif %}
+            px-4 py-2 rounded">&#9208;Pause
+            </button>
+            <button class="{% if not infos.run and not infos.pause %} bg-blue-500 {% else %} bg-gray-300 {% endif %}
+            bg-gray-300 px-4 py-2 rounded">&#9209;Stop
+            </button>
         </div>
 
         <!-- Speed Control -->
         <div class="flex items-center mt-6 gap-4">
             <label for="speed" class="text-sm font-medium">Speed:</label>
-            <input type="range" id="speed" name="speed" min="1" max="10" class="w-48">
+            <input type="range" id="speed" name="speed" min="1" max="10" class="w-48"
+                   value="{{ infos.speed }}">
         </div>
     </div>
 {% endblock %}
-13
