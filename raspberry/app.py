@@ -4,8 +4,11 @@ It defines the routes and its associated functions.
 """
 
 import os
+import time
 from pprint import pprint
+from threading import Thread
 from flask import (Flask, request, redirect, url_for, render_template, flash, send_from_directory)
+from flask_socketio import SocketIO, emit
 
 from assets import UPLOAD_FOLDER, PROGRAM_LANGUAGES, ALLOWED_EXTENSIONS
 import turingmachine_interpreter as tm_interp
@@ -13,7 +16,10 @@ import dannweisstobiesnicht as sm
 
 # pylint: disable=global-statement
 app = Flask(__name__)
-MACHINE = None
+socketio = SocketIO(app)
+
+MACHINE: sm.StateMachine | None = None
+CURRENT_MACHINE_THREAD: Thread | None = None
 
 # ------------------------------------------------------------------------------------------
 # Set the secret key to some random bytes. Keep this really secret!
@@ -23,8 +29,53 @@ app.secret_key = 'this is a very secure secret key which we will definitely repl
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 
-# ------------------------------------------------------------------------------------------
+# WEB-SOCKET--------------------------------------------------------------------------------
 
+@socketio.on('connect')
+def handle_connect():
+    """Handles the websocket connection of a new client."""
+    broadcast_machine_state()
+
+
+def broadcast_machine_state():
+    """Broadcasts the machine state to all connected clients every second."""
+    while MACHINE and MACHINE.running:
+        socketio.emit('state_update', {
+            'program_name': MACHINE.program_name,
+            'state': MACHINE.current_state,
+            'step': MACHINE.steps,
+            'run': MACHINE.running,
+            'pause': MACHINE.pause,
+            'speed': MACHINE.speed,
+            'errors': MACHINE.errors,
+        })
+        time.sleep(1)  # Update every 1 second
+
+
+@socketio.on('command')
+def handle_command(data):
+    """Handles incoming commands from the client."""
+    if not MACHINE and not MACHINE.running:
+        emit('error', {'message': 'No machine is running'})
+        return
+
+    command = data.get('command')
+    if command == 'resume':
+        if MACHINE.running:
+            emit('error', {'message': 'Machine is already running'})
+            return
+        MACHINE.resume_program()
+    elif command == 'pause':
+        if MACHINE.pause:
+            emit('error', {'message': 'Machine is already paused'})
+            return
+        MACHINE.pause_program()
+    elif command == 'stop':
+        MACHINE.stop_program()
+    emit('confirmation', {'message': f'Command {command} executed'})
+
+
+# ------------------------------------------------------------------------------------------
 
 @app.route('/', methods=['GET'])
 def index():
@@ -97,8 +148,18 @@ def delete_file(programm):
 
 @app.route('/run', methods=['POST'])
 def run_program():
-    """Runs the provided program."""
-    global MACHINE
+    """Runs the provided program. Stops current program if running."""
+    global MACHINE, CURRENT_MACHINE_THREAD
+
+    # Check if a machine is already running
+    if MACHINE and MACHINE.running:
+        MACHINE.stop_program()
+        if CURRENT_MACHINE_THREAD:
+            CURRENT_MACHINE_THREAD.join() # Wait for the machine to come to a finish point
+        else:
+            assert False, "MACHINE is running but there is no CURRENT_MACHINE_THREAD"
+
+    # Load the new program
     program = request.form['program']
     if not program:
         flash('Kein Programm ausgewählt', 'error')
@@ -110,14 +171,23 @@ def run_program():
     print(language)
     filepath = os.path.join(app.config['UPLOAD_FOLDER'], program)
     tm_code = tm_interp.parse_turing_machine(filepath, language)
+    print(f"Program {program} loaded with language {language}. Machine code:")
     pprint(tm_code)
-    # Implement the run function here
     if tm_code["errors"]:
         return render_template('parser_error.html', errors=tm_code["errors"],
                                warnings=tm_code["warnings"], tm_code=tm_code), 200
+
+    # Create and start a new machine
     MACHINE = sm.StateMachine(tm_code)
-    MACHINE.run()
-    return redirect(url_for('running_program'))
+
+    def background_task():
+        """Runs the machine in a separate thread."""
+        MACHINE.run()
+
+    CURRENT_MACHINE_THREAD = Thread(target=background_task, daemon=True, name=f"TMZA-{program}")
+    CURRENT_MACHINE_THREAD.start()
+
+    return redirect(url_for('running_program')), 200
 
 
 @app.route('/running_program', methods=['GET'])

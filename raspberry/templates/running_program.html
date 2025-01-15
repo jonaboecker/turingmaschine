@@ -1,32 +1,46 @@
 {% extends "base.html" %}
 
+{% block extraScript %}
+    <script type="module" src="{{ url_for('static', filename='js/websocket.js') }}"></script>
+{% endblock %}
+
 {% block body %}
     {{ flash_message() }}
     {{ htwg_icon("Es bewegt sich") }}
 
     <div class="flex flex-col items-center justify-center my-8">
         <!-- Title -->
-        <h1 class="text-2xl font-bold mb-4">{{ infos.program_name }}</h1>
+        <h1 id="program_name" class="text-2xl font-bold mb-4">{{ infos.program_name }}</h1>
 
         <!-- Errors -->
-        {% for error in infos.errors %}
-            <p class="text-red-500">{{ infos.error }}</p>
-        {% endfor %}
+        <div id="errors" class="">
+            {% for error in infos.errors %}
+                <p class="text-red-500">{{ error }}</p>
+            {% endfor %}
+        </div>
+
 
         <!-- State display -->
-        <div class="text-lg font-medium">State: <span class="italic">{{ infos.state }}</span></div>
-        <div class="text-sm text-gray-500">Steps: <span class="italic">{{ infos.step }}</span></div>
+        <div class="text-lg font-medium">State: <span id="state"
+                                                      class="italic">{{ infos.state }}</span></div>
+        <div class="text-sm text-gray-500">Steps: <span id="steps"
+                                                        class="italic">{{ infos.step }}</span></div>
 
         <!-- Controls -->
         <div class="flex items-center gap-4 mt-4">
-            <button class="{% if infos.run and not infos.pause %} bg-blue-500 {% else %} bg-gray-300 {% endif %}
-            bg-blue-500 text-white px-4 py-2 rounded">&#9654; Play
+            <button id="resume_button"
+                    class="{% if infos.run and not infos.pause %} bg-blue-500 {% else %} bg-gray-300 {% endif %}
+                    bg-blue-500 text-white px-4 py-2 rounded">&#9654; Play
             </button>
-            <button class="{% if infos.pause %} bg-blue-500 {% else %} bg-gray-300 {% endif %}
-            px-4 py-2 rounded">&#9208;Pause
+            <button
+                    id="pause_button"
+                    class="{% if infos.pause %} bg-blue-500 {% else %} bg-gray-300 {% endif %}
+                    px-4 py-2 rounded">&#9208;Pause
             </button>
-            <button class="{% if not infos.run and not infos.pause %} bg-blue-500 {% else %} bg-gray-300 {% endif %}
-            bg-gray-300 px-4 py-2 rounded">&#9209;Stop
+            <button
+                    id="stop_button"
+                    class="{% if not infos.run and not infos.pause %} bg-blue-500 {% else %} bg-gray-300 {% endif %}
+                    bg-gray-300 px-4 py-2 rounded">&#9209;Stop
             </button>
         </div>
 
