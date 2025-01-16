@@ -20,9 +20,18 @@ float voltage = 0;
 
 const int delta = 100;
 
+int flag = 0;
+
 SensorData stripe_dict[] = {
   {700, 0, 0},
   {200, 1, 0},
+  {700, 2, 0},
+  {200, 3, 0},
+  {700, 4, 0},
+  {200, 5, 0},
+  {700, 6, 0},
+  {200, 7, 0},
+  {700, 8, 0}
 };
 
 const int dictSize = sizeof(stripe_dict) / sizeof(stripe_dict[0]);
@@ -36,10 +45,14 @@ void setup() {
 }
 
 void loop() {
-  int sensor_val = read_voltage();
+  //int sensor_val = read_voltage();
   //Serial.println(sensor_val);
-  connect_led_demo(sensor_val);
+  //connect_led_demo(sensor_val);
   //led_demo();
+  if (flag == 0){
+    flag++;
+    led_3();
+  }
 }
 
 void led_demo() {
@@ -66,6 +79,17 @@ void led_demo() {
 
     delay(DELAY_INTERVAL);  // pause between each pixel
   }
+}
+
+void led_3(){
+  WS2812B.clear();  // set all pixel colors to 'off'. It only takes effect if pixels.show() is called
+  WS2812B.setBrightness(10); // a value from 0 to 255
+
+  WS2812B.setPixelColor(0, WS2812B.Color(255, 0, 0));  // it only takes effect if pixels.show() is called
+  WS2812B.setPixelColor(1, WS2812B.Color(0, 255, 0));  // it only takes effect if pixels.show() is called
+  WS2812B.setPixelColor(2, WS2812B.Color(0, 0, 255));  // it only takes effect if pixels.show() is called
+
+  WS2812B.show();
 }
 
 int read_voltage() {
