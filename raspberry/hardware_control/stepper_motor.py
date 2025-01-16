@@ -8,13 +8,14 @@ import platform
 
 # Import RPi.GPIO (just supported on RPi) or fake_rpi.RPi.GPIO based on the platform
 import importlib
+from time import sleep
 
 import assets
 
 if platform.system() == "Linux":
     GPIO = importlib.import_module("RPi.GPIO")
 else:
-    GPIO = importlib.import_module("fake_rpi.RPi.GPIO")
+    GPIO = None
 
 # Pin Configuration
 STEP_PIN = 19  # STEP-Pin of A4988 on GPIO19 (Pin 35)
@@ -32,7 +33,8 @@ class StepperMotorController:
 
     def __init__(self):
         self.current_position = 0
-        self.setup_pins()
+        if platform.system() == "Linux":
+            self.setup_pins()
 
     @staticmethod
     def setup_pins():
@@ -92,7 +94,11 @@ class StepperMotorController:
         if self.current_position < 0 or self.current_position > assets.LED_AMOUNT:
             return False
         # todo: implement the movement with correct speed
-        self.rotate(steps, direction.name)
+
+        if platform.system() == "Linux":
+            self.rotate(steps, direction.name)
+        else:
+            sleep(2)
         print(f"Moving the robot {direction} by {steps} steps with speed {speed}")
         return True
 

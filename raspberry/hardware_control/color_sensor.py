@@ -16,7 +16,7 @@ import assets
 if platform.system() == "Linux":
     GPIO = importlib.import_module("RPi.GPIO")
 else:
-    GPIO = importlib.import_module("fake_rpi.RPi.GPIO")
+    GPIO = None
 
 def get_color():
     """

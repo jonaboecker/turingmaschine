@@ -10,14 +10,15 @@ import importlib
 if platform.system() == "Linux":
     GPIO = importlib.import_module("RPi.GPIO")
 else:
-    GPIO = importlib.import_module("fake_rpi.RPi.GPIO")
+    GPIO = None
 
 # GPIO pin for the light barrier
 SENSOR_PIN = 17
 
 # Initialize GPIO
-GPIO.setmode(GPIO.BCM)  # Use BCM pin numbering
-GPIO.setup(SENSOR_PIN, GPIO.IN)  # Configure the pin as an input
+if platform.system() == "Linux":
+    GPIO.setmode(GPIO.BCM)  # Use BCM pin numbering
+    GPIO.setup(SENSOR_PIN, GPIO.IN)  # Configure the pin as an input
 
 def get_state():
     """
@@ -26,4 +27,7 @@ def get_state():
     Returns:
         bool: state The of the light barrier (True if blocked, False if not blocked).
     """
-    return GPIO.input(SENSOR_PIN) == 1
+    if platform.system() == "Linux":
+        return GPIO.input(SENSOR_PIN) == 1
+    else:
+        return True # Return True for testing on non-Raspberry Pi platforms
