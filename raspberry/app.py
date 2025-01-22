@@ -41,8 +41,7 @@ def handle_connect():
 
 def broadcast_machine_state():
     """Broadcasts the machine state to all connected clients every second."""
-    socketio.emit('xxx', {"hihi": "haha"})
-    while MACHINE and MACHINE.running:
+    if MACHINE:
         socketio.emit('state_update', {
             'program_name': MACHINE.program_name,
             'state': MACHINE.current_state,
@@ -51,8 +50,8 @@ def broadcast_machine_state():
             'pause': MACHINE.pause,
             'speed': MACHINE.speed,
             'errors': MACHINE.errors,
+            'should_stop': MACHINE.should_stop
         })
-        time.sleep(1)  # Update every 1 second
 
 
 @socketio.on('disconnect')
@@ -70,17 +69,28 @@ def handle_command(data):
 
     command = data.get('command')
     if command == 'resume':
-        if MACHINE.running:
-            emit('error', {'message': 'Machine is already running'})
-            return
-        MACHINE.resume_program()
+        if MACHINE.pause:
+            MACHINE.resume_program()
+        elif not MACHINE.running or MACHINE.should_stop:
+            emit('error', {'message': 'Maschine ist nicht am Laufen'})
+        else:
+            emit('error', {'message': 'Maschine ist nicht pausiert'})
     elif command == 'pause':
         if MACHINE.pause:
-            emit('error', {'message': 'Machine is already paused'})
+            emit('error', {'message': 'Maschine ist bereits pausiert'})
+            return
+        elif not MACHINE.running or MACHINE.should_stop:
+            emit('error', {'message': 'Maschine ist nicht am Laufen'})
             return
         MACHINE.pause_program()
     elif command == 'stop':
+        if not MACHINE.running or MACHINE.should_stop:
+            emit('error', {'message': 'Maschine ist nicht am Laufen'})
+            return
         MACHINE.stop_program()
+    elif command == 'speed':
+        speed = int(data.get('value'))
+        MACHINE.change_speed(speed)
     emit('confirmation', {'message': f'Command {command} executed'})
 
 
@@ -189,6 +199,8 @@ def run_program():
     # Create and start a new machine
     MACHINE = sm.StateMachine(tm_code)
 
+    MACHINE.add_listener(broadcast_machine_state)
+
     def background_task():
         """Runs the machine in a separate thread."""
         MACHINE.run()
@@ -213,7 +225,8 @@ def running_program():
         'run': MACHINE.running,
         'pause': MACHINE.pause,
         'speed': MACHINE.speed,
-        'errors': MACHINE.errors
+        'errors': MACHINE.errors,
+        'should_stop': MACHINE.should_stop
     }
     return render_template('running_program.html', infos=infos), 200
 

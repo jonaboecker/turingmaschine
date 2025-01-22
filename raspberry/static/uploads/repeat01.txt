@@ -2,7 +2,6 @@
 #   "On Computable Numbers, with an Application to
 #    the Entscheidungsproblem".
 # It simply writes the endless sequence 0 1 0 1 0 1...
-blank: ' '
 start state: b
 table:
   b:

@@ -22,14 +22,14 @@ $(document).ready(function () {
         document.querySelector('#program_name').innerText = data.program_name;
         document.querySelector('#state').innerText = data.state;
         document.querySelector('#steps').innerText = data.step;
-        /* todo: design buttons according to state
-                'run': MACHINE.running,
-                'pause': MACHINE.pause,
-                'speed': MACHINE.speed,
-        */
+        document.querySelector('#speed').innerText = data.speed;
+        document.querySelector('#resume_button').className = data.run && !data.pause ? 'bg-blue-500 text-white px-4 py-2 rounded' : 'bg-gray-300 bg-blue-500 px-4 py-2 rounded';
+        document.querySelector('#pause_button').className = data.pause ? 'bg-blue-500 text-white px-4 py-2 rounded' : 'bg-gray-300 bg-blue-500 px-4 py-2 rounded';
+        document.querySelector('#stop_button').className = data.should_stop ? 'bg-blue-500 text-white px-4 py-2 rounded' : 'bg-gray-300 bg-blue-500 px-4 py-2 rounded';
+
         for (const error of data.errors) {
             const errorContainer = document.querySelector('#errors');
-            if ([...errorContainer.children].some(el => el.textContent === data.message)) {
+            if ([...errorContainer.children].some(el => el.textContent === error)) {
                 continue; // Error already shown
             }
             // add new error-element
@@ -39,69 +39,24 @@ $(document).ready(function () {
             errorContainer.appendChild(errorElement);
         }
     });
-});
 
+    socket.on('error', function (data) {
+        console.error('Error:', data.message);
+        alert(data.message); // Fehler als Popup anzeigen
+    });
 
-// Funktion zum Verbindungsaufbau mit dem Websocket-Server
-function connectWebSocket() {
-    // const socket = io('http://127.0.0.1:5000');
-    const websocket = new WebSocket("wss://127.0.0.1:5000");
+    socket.on('confirmation', function (data) {
+        console.log('Confirmation:', data.message);
+    });
 
-    websocket.onopen = function (event) {
-        console.log("Connected to Websocket");
-    }
+    socket.on('default', function (data) {
+        console.warn('Unknown message type:', data);
+    });
 
-    websocket.onclose = function () {
-        console.log('Connection with Websocket Closed!');
-    };
-
-    websocket.onerror = function (error) {
-        console.log('Error in Websocket Occured: ' + error);
-    };
-
-    // Websocket Event-Listener für Status-Updates
-    websocket.onmessage = function (e) {
-        console.log('Message from Websocket: ' + e.data);
-
-        // Nachricht als JSON parsen
-        let message = JSON.parse(e.data);
-
-        // Typ der Nachricht prüfen und entsprechend handeln
-        switch (message.type) {
-            case 'state_update':
-                console.log('State Update:', message.data);
-                // Aktualisiere die Anzeige der Maschine
-                document.querySelector('#program_name').innerText = message.data.program_name;
-                document.querySelector('#state').innerText = message.data.state;
-                document.querySelector('#steps').innerText = message.data.step;
-
-                // Fehler aktualisieren
-                const errorContainer = document.querySelector('#errors');
-                for (const error of message.data.errors) {
-                    if ([...errorContainer.children].some(el => el.textContent === error)) {
-                        continue; // Fehler bereits angezeigt
-                    }
-                    const errorElement = document.createElement('p');
-                    errorElement.className = 'text-red-500';
-                    errorElement.textContent = error;
-                    errorContainer.appendChild(errorElement);
-                }
-                break;
-
-            case 'error':
-                console.error('Error:', message.data.message);
-                alert(message.data.message); // Fehler als Popup anzeigen
-                break;
-
-            case 'confirmation':
-                console.log('Confirmation:', message.data.message);
-                break;
-
-            default:
-                console.warn('Unknown message type:', message.type);
-        }
-    };
-
+    // Event-Handler für den Speed-Input registrieren
+    document.querySelector('#speed').addEventListener('change', (event) => {
+        socket.emit('command', {command: 'speed', value: event.target.value});
+    });
 
     // Button-Event-Handler registrieren
     document.querySelector('#resume_button').addEventListener('click', () => {
@@ -113,11 +68,8 @@ function connectWebSocket() {
     });
 
     document.querySelector('#stop_button').addEventListener('click', () => {
-        websocket.emit('command', {command: 'stop'});
+        socket.emit('command', {command: 'stop'});
     });
-}
+});
 
-// Verbindung aufbauen, sobald die Seite geladen ist
-// document.addEventListener('DOMContentLoaded', () => {
-//     connectWebSocket();
-// });
+

@@ -29,5 +29,4 @@ def get_state():
     """
     if platform.system() == "Linux":
         return GPIO.input(SENSOR_PIN) == 1
-    else:
-        return True # Return True for testing on non-Raspberry Pi platforms
+    return True # Return True for testing on non-Raspberry Pi platforms
