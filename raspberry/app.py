@@ -4,7 +4,6 @@ It defines the routes and its associated functions.
 """
 
 import os
-import time
 from pprint import pprint
 from threading import Thread
 from flask import (Flask, request, redirect, url_for, render_template, flash, send_from_directory)
@@ -79,7 +78,7 @@ def handle_command(data):
         if MACHINE.pause:
             emit('error', {'message': 'Maschine ist bereits pausiert'})
             return
-        elif not MACHINE.running or MACHINE.should_stop:
+        if not MACHINE.running or MACHINE.should_stop:
             emit('error', {'message': 'Maschine ist nicht am Laufen'})
             return
         MACHINE.pause_program()

@@ -100,7 +100,8 @@ class StateMachine:
             self.execute_with_lock_and_notify(
                 lambda: self.errors.append("Dein Turing Programm hat einen Reject State erreicht."))
             return False
-        self.execute_with_lock_and_notify(lambda: setattr(self, 'current_state', transition['new_state']))
+        self.execute_with_lock_and_notify(
+            lambda: setattr(self, 'current_state', transition['new_state']))
         toggle_retry = 0
         while cs.get_color() != transition['write_symbol']:
             if toggle_retry >= assets.TOGGLE_IO_BAND_RETRYS:
@@ -124,7 +125,8 @@ class StateMachine:
             bool: True if the tm reached an accept state,
                   False if there accept wasn't reached, reason is saved in self.errors.
         """
-        self.execute_with_lock_and_notify(lambda: (setattr(self, 'running', True), setattr(self, 'should_stop', False)))
+        self.execute_with_lock_and_notify(
+            lambda: (setattr(self, 'running', True), setattr(self, 'should_stop', False)))
         self.home_robot()
         self.pause_machine()
         if self.should_stop:
@@ -153,6 +155,7 @@ class StateMachine:
             if self.should_stop:
                 return
             time.sleep(0.1)
+
     def pause_program(self):
         """Setting the flag to Pause the state machine"""
         self.execute_with_lock_and_notify(lambda: setattr(self, 'pause', True))
@@ -165,8 +168,9 @@ class StateMachine:
 
     def stop_program(self):
         """Stop the state machine at the next opportunity, set the should_stop flag"""
-        self.execute_with_lock_and_notify(lambda: (setattr(self, 'should_stop', True), self.errors.append(
-            "Dein Turing Programm wird bei nächster Gelegenheit gestoppt.")))
+        self.execute_with_lock_and_notify(
+            lambda: (setattr(self, 'should_stop', True), self.errors.append(
+                "Dein Turing Programm wird bei nächster Gelegenheit gestoppt.")))
         print("should_stop flag set, Robot will stop soon")
 
     def change_speed(self, speed):
@@ -176,6 +180,8 @@ class StateMachine:
 
     def stop_by_flag(self):
         """Stop the state machine after the should_stop flag was set"""
-        self.execute_with_lock_and_notify(lambda: (setattr(self, 'running', False), setattr(self, 'pause', False),
-        setattr(self, 'should_stop', False), self.errors.append("Das Turing Programm wurde vom Benutzer gestoppt.")))
+        self.execute_with_lock_and_notify(
+            lambda: (setattr(self, 'running', False), setattr(self, 'pause', False),
+                     setattr(self, 'should_stop', False),
+                     self.errors.append("Das Turing Programm wurde vom Benutzer gestoppt.")))
         print("Robot stopped by should_stop flag")
