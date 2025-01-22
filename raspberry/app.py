@@ -16,7 +16,8 @@ import dannweisstobiesnicht as sm
 
 # pylint: disable=global-statement
 app = Flask(__name__)
-socketio = SocketIO(app)
+#socketio = SocketIO(app)
+socketio = SocketIO(app, cors_allowed_origins="*")  # CORS korrekt konfigurieren
 
 MACHINE: sm.StateMachine | None = None
 CURRENT_MACHINE_THREAD: Thread | None = None
@@ -34,11 +35,13 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 @socketio.on('connect')
 def handle_connect():
     """Handles the websocket connection of a new client."""
+    print('Client connected')
     broadcast_machine_state()
 
 
 def broadcast_machine_state():
     """Broadcasts the machine state to all connected clients every second."""
+    socketio.emit('xxx', {"hihi": "haha"})
     while MACHINE and MACHINE.running:
         socketio.emit('state_update', {
             'program_name': MACHINE.program_name,
@@ -50,6 +53,12 @@ def broadcast_machine_state():
             'errors': MACHINE.errors,
         })
         time.sleep(1)  # Update every 1 second
+
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    """Handles the websocket disconnection of a client."""
+    print('Client disconnected', request.sid)
 
 
 @socketio.on('command')
@@ -252,4 +261,6 @@ def robots():
 
 # MAIN------------------------------------------------------------------
 if __name__ == '__main__':
-    app.run()
+    #socketio.run(app)  # Startet den SocketIO-Server
+    socketio.run(app, host="0.0.0.0", port=5000)
+    #app.run()

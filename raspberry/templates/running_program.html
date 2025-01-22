@@ -1,7 +1,17 @@
 {% extends "base.html" %}
 
 {% block extraScript %}
-    <script type="module" src="{{ url_for('static', filename='js/websocket.js') }}"></script>
+    <!-- Socket.IO Bibliothek -->
+    {#    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>#}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"
+            integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg=="
+            crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.js"
+            integrity="sha512-aMGMvNYu8Ue4G+fHa359jcPb1u+ytAF+P2SCb+PxrjCdO3n3ZTxJ30zuH39rimUggmTwmh2u7wvQsDTHESnmfQ=="
+            crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js"></script>
+    <!-- Deine Websocket-Logik -->
+    <script src="{{ url_for('static', filename='js/websocket_running_machine.js') }}"></script>
 {% endblock %}
 
 {% block body %}
