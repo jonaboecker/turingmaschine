@@ -98,7 +98,7 @@ class StepperMotorController:
         if platform.system() == "Linux":
             self.rotate(steps, direction.name)
         else:
-            sleep(2)
+            sleep(5 / speed)
         print(f"Moving the robot {direction} by {steps} steps with speed {speed}")
         return True
 
