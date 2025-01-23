@@ -90,13 +90,22 @@ def _parse_io_syntax(lines, turing_machine):
             if current_state and ":" in line:
                 symbol, instruction = map(str.strip, line.split(":", 1))
 
-                # Parse instruction
-                transition = _parse_io_instruction(instruction, current_state, symbol)
-                if transition:
-                    turing_machine["state_transitions"][
-                        (current_state, _map_symbol(symbol))] = transition
+                # Check if the symbol represents multiple values (array-like) or a single value
+                if symbol.startswith("[") and symbol.endswith("]"):
+                    # Parse as a list of symbols, stripping whitespace and splitting on commas
+                    symbols = [s.strip() for s in symbol[1:-1].split(",")]
                 else:
-                    turing_machine["errors"].append(f"Ungültige Anweisung: {line}")
+                    # Treat as a single symbol
+                    symbols = [symbol]
+
+                for sym in symbols:
+                    # Parse instruction
+                    transition = _parse_io_instruction(instruction, current_state, sym)
+                    if transition:
+                        turing_machine["state_transitions"][
+                            (current_state, _map_symbol(sym))] = transition
+                    else:
+                        turing_machine["errors"].append(f"Ungültige Anweisung: {line}")
 
 
 def _map_symbol(symbol: str):

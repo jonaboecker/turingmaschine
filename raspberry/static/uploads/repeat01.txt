@@ -5,13 +5,13 @@
 start state: b
 table:
   b:
-    ' ': {write: 0, R: c}
+    [' ',0,1]: {write: 0, R: c}
   c:
-    ' ':           {R: e}
+    [' ',0,1]:           {R: e}
   e:
-    ' ': {write: 1, R: f}
+    [' ',0,1]: {write: 1, R: f}
   f:
-    ' ':           {R: b}
+    [' ',0,1]:           {R: b}
 
 
 # (Turing uses the convention of leaving a gap after each output cell,
