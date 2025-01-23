@@ -117,11 +117,11 @@ def upload_file():
     language = PROGRAM_LANGUAGES(request.form['language'])
     if not language:
         flash('Keine oder unbekannte Sprache ausgewählt', 'error')
-        return redirect(request.url)
+        return redirect(url_for('index'))
     print(language)
     if 'file' not in request.files:
         flash('Keine Datei ausgewählt', 'error')
-        return redirect(request.url)
+        return redirect(url_for('index'))
     file = request.files['file']
     print(file)
     if not file:
@@ -149,8 +149,7 @@ def upload_file():
     if tm_code["errors"]:
         return render_template('parser_error.html', errors=tm_code["errors"],
                                warnings=tm_code["warnings"], tm_code=tm_code), 200
-    return render_template('parser_error.html',
-                           warnings=tm_code["warnings"], tm_code=tm_code), 200
+    return redirect(url_for('index'))
 
 
 @app.route('/delete/<programm>', methods=['GET'])
@@ -197,7 +196,6 @@ def run_program():
 
     # Create and start a new machine
     MACHINE = sm.StateMachine(tm_code)
-
     MACHINE.add_listener(broadcast_machine_state)
 
     def background_task():
@@ -207,7 +205,7 @@ def run_program():
     CURRENT_MACHINE_THREAD = Thread(target=background_task, daemon=True, name=f"TMZA-{program}")
     CURRENT_MACHINE_THREAD.start()
 
-    return redirect(url_for('running_program')), 200
+    return redirect(url_for('running_program'))
 
 
 @app.route('/running_program', methods=['GET'])
@@ -230,17 +228,10 @@ def running_program():
     return render_template('running_program.html', infos=infos), 200
 
 
-# Route, um hochgeladene Dateien aufzulisten
-# @app.route('/files')
-# def uploaded_files():
-#     files = os.listdir(app.config['UPLOAD_FOLDER'])
-#     return render_template('files.html', files=files)
-#
-# # Route, um eine Datei herunterzuladen
-# @app.route('/files/<filename>')
-#
-# def download_file(filename):
-#     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+@app.route('/download/<filename>')
+def download_file(filename):
+    """Serves the requested file."""
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 
 # PWA-------------------------------------------------------------------
