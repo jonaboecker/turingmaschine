@@ -1,0 +1,113 @@
+//name: Move 10 Steps Right
+init: q0
+accept:
+
+// Step 1
+q0,_
+qMove1,_,>
+
+q0,0
+qMove1,0,>
+
+q0,1
+qMove1,1,>
+
+// Step 2
+qMove1,_
+qMove2,_,>
+
+qMove1,0
+qMove2,0,>
+
+qMove1,1
+qMove2,1,>
+
+// Step 3
+qMove2,_
+qMove3,_,>
+
+qMove2,0
+qMove3,0,>
+
+qMove2,1
+qMove3,1,>
+
+// Step 4
+qMove3,_
+qMove4,_,>
+
+qMove3,0
+qMove4,0,>
+
+qMove3,1
+qMove4,1,>
+
+// Step 5
+qMove4,_
+qMove5,_,>
+
+qMove4,0
+qMove5,0,>
+
+qMove4,1
+qMove5,1,>
+
+// Step 6
+qMove5,_
+qMove6,_,>
+
+qMove5,0
+qMove6,0,>
+
+qMove5,1
+qMove6,1,>
+
+// Step 7
+qMove6,_
+qMove7,_,>
+
+qMove6,0
+qMove7,0,>
+
+qMove6,1
+qMove7,1,>
+
+// Step 8
+qMove7,_
+qMove8,_,>
+
+qMove7,0
+qMove8,0,>
+
+qMove7,1
+qMove8,1,>
+
+// Step 9
+qMove8,_
+qMove9,_,>
+
+qMove8,0
+qMove9,0,>
+
+qMove8,1
+qMove9,1,>
+
+// Step 10
+qMove9,_
+qMove10,_,>
+
+qMove9,0
+qMove10,0,>
+
+qMove9,1
+qMove10,1,>
+
+// Accept
+qMove10,_
+qMove11,_,-
+
+qMove10,0
+qAccept,0,-
+
+qMove10,1
+qAccept,1,-
