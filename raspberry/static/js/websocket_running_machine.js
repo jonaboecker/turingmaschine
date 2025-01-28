@@ -22,7 +22,7 @@ $(document).ready(function () {
         document.querySelector('#program_name').innerText = data.program_name;
         document.querySelector('#state').innerText = data.state;
         document.querySelector('#steps').innerText = data.step;
-        document.querySelector('#speed').innerText = data.speed;
+        document.querySelector('#speed').value = data.speed;
         document.querySelector('#resume_button').className = data.run && !data.pause ? 'bg-blue-500 text-white px-4 py-2 rounded' : 'bg-gray-300 bg-blue-500 px-4 py-2 rounded';
         document.querySelector('#pause_button').className = data.pause ? 'bg-blue-500 text-white px-4 py-2 rounded' : 'bg-gray-300 bg-blue-500 px-4 py-2 rounded';
         document.querySelector('#stop_button').className = data.should_stop ? 'bg-blue-500 text-white px-4 py-2 rounded' : 'bg-gray-300 bg-blue-500 px-4 py-2 rounded';
