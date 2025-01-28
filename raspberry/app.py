@@ -4,6 +4,7 @@ It defines the routes and its associated functions.
 """
 
 import os
+import ctypes
 from pprint import pprint
 from threading import Thread
 from flask import (Flask, request, redirect, url_for, render_template, flash, send_from_directory)
@@ -15,7 +16,7 @@ import dannweisstobiesnicht as sm
 
 # pylint: disable=global-statement
 app = Flask(__name__)
-#socketio = SocketIO(app)
+# socketio = SocketIO(app)
 socketio = SocketIO(app, cors_allowed_origins="*")  # CORS korrekt konfigurieren
 
 MACHINE: sm.StateMachine | None = None
@@ -163,6 +164,7 @@ def delete_file(programm):
         flash(f"Programm {programm} nicht gefunden.", 'error')
     return redirect(url_for('index'))
 
+
 @app.route('/run', methods=['POST'])
 def run_program():
     """Runs the provided program. Stops current program if running."""
@@ -172,7 +174,7 @@ def run_program():
     if MACHINE and MACHINE.running:
         MACHINE.stop_program()
         if CURRENT_MACHINE_THREAD:
-            CURRENT_MACHINE_THREAD.join() # Wait for the machine to come to a finish point
+            CURRENT_MACHINE_THREAD.join()  # Wait for the machine to come to a finish point
         else:
             assert False, "MACHINE is running but there is no CURRENT_MACHINE_THREAD"
 
@@ -228,6 +230,29 @@ def running_program():
     return render_template('running_program.html', infos=infos), 200
 
 
+@app.route('/emergency_stop', methods=['GET'])
+def emergency_stop():
+    """emergency stops a running maschine immediately."""
+    global MACHINE, CURRENT_MACHINE_THREAD
+
+    if not MACHINE or not MACHINE.running:
+        flash('Keine laufende Maschine für den Nothalt gefunden.', 'error')
+        return redirect(url_for('index'))
+
+    if not CURRENT_MACHINE_THREAD or not CURRENT_MACHINE_THREAD.is_alive():
+        flash('Keinen laufenden Maschinen-Thread für den Nothalt gefunden.', 'error')
+        return redirect(url_for('index'))
+    ctypes.pythonapi.PyThreadState_SetAsyncExc(
+        ctypes.c_long(CURRENT_MACHINE_THREAD.ident),
+        ctypes.py_object(SystemExit)
+    )
+    # reset the machine
+    MACHINE = None
+    CURRENT_MACHINE_THREAD = None
+    flash('Emergency-Stop ausgeführt. Maschine gestoppt.', 'success')
+    return redirect(url_for('index'))
+
+
 @app.route('/download/<filename>')
 def download_file(filename):
     """Serves the requested file."""
@@ -264,6 +289,6 @@ def robots():
 
 # MAIN------------------------------------------------------------------
 if __name__ == '__main__':
-    #socketio.run(app)  # Startet den SocketIO-Server
+    # socketio.run(app)  # Startet den SocketIO-Server
     socketio.run(app, host="0.0.0.0", port=5000)
-    #app.run()
+    # app.run()
