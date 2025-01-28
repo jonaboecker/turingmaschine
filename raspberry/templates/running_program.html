@@ -60,5 +60,13 @@
             <input type="range" id="speed" name="speed" min="1" max="10" class="w-48"
                    value="{{ infos.speed }}">
         </div>
+        <div id="emergency-stop">
+            <button
+                    class="mt-4 bg-red-500 text-white font-bold p-6
+                        border border-blue-700 rounded"
+                    onclick="location.href='/emergency_stop'">
+                Emergency Stop
+            </button>
+        </div>
     </div>
 {% endblock %}

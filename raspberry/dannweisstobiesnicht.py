@@ -144,6 +144,12 @@ class StateMachine:
             print(f"Current state: {self.current_state}")
             if not self.single_step():
                 print(self.errors)
+                self.execute_with_lock_and_notify(
+                    lambda: (setattr(self, 'running', False),
+                             setattr(self, 'pause', False),
+                             setattr(self, 'should_stop', False),
+                             self.errors.append(
+                                 "Dein Turing Programm wurde aufgrund eines Fehlers gestoppt.")))
                 return False
         print("Robot reached an accept state")
         self.execute_with_lock_and_notify(lambda: setattr(self, 'running', False))
