@@ -1,6 +1,5 @@
 //name: Move 10 Steps Right
 init: q0
-accept:
 
 // Step 1
 q0,_

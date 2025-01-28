@@ -146,7 +146,7 @@ def upload_file():
     # file_path = '/mnt/data/palindrome.txt'
     tm_code = tm_interp.parse_turing_machine(filepath, language)
     pprint(tm_code)
-    if tm_code["errors"]:
+    if tm_code["errors"] or tm_code["warnings"]:
         return render_template('parser_error.html', errors=tm_code["errors"],
                                warnings=tm_code["warnings"], tm_code=tm_code), 200
     return redirect(url_for('index'))
