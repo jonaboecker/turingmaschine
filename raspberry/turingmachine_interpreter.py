@@ -57,21 +57,26 @@ def parse_turing_machine(file_path, language: PROGRAM_LANGUAGES = PROGRAM_LANGUA
 
 def _parse_io_syntax(lines, turing_machine):
     """
-    Parses the Turing machine in io syntax.
+    Parses the Turing machine in io syntax, allowing symbols in brackets and implicit state transitions.
     """
     table_started = False
     current_state = None
 
     for line in lines:
-        line = line.strip()
-
-        # Skip comments and empty lines
-        if not line or line.startswith("#"):
+        # Remove comments
+        line = line.split("#", 1)[0].strip()
+        if not line:
             continue
 
         # Start state
         if line.startswith("start state:"):
             turing_machine["init"] = line.split(":", 1)[1].strip()
+            continue
+
+        # Accept states
+        if line.startswith("accept states:"):
+            accept_states = line.split(":", 1)[1].strip()
+            turing_machine["accept"] = set(map(str.strip, accept_states.split(",")))
             continue
 
         # Transition table start
@@ -83,14 +88,14 @@ def _parse_io_syntax(lines, turing_machine):
         if table_started:
             # State declaration
             if re.match(r"^\w+:$", line):
-                current_state = line[:-1]
+                current_state = line[:-1].strip()
                 continue
 
             # Transition definition
             if current_state and ":" in line:
                 symbol, instruction = map(str.strip, line.split(":", 1))
 
-                # Check if the symbol represents multiple values (array-like) or a single value
+                # Handle multiple symbols inside brackets
                 if symbol.startswith("[") and symbol.endswith("]"):
                     # Parse as a list of symbols, stripping whitespace and splitting on commas
                     symbols = [s.strip() for s in symbol[1:-1].split(",")]
@@ -106,6 +111,15 @@ def _parse_io_syntax(lines, turing_machine):
                             (current_state, _map_symbol(sym))] = transition
                     else:
                         turing_machine["errors"].append(f"Ungültige Anweisung: {line}")
+            else:
+                # Handle implicit state transitions like `R` or `L`
+                if current_state and line in {"R", "L"}:
+                    transition = {"move": line, "next": current_state}
+                    turing_machine["state_transitions"][
+                        (current_state, None)] = transition  # `None` represents any symbol
+                else:
+                    turing_machine["errors"].append(f"Ungültige Anweisung: {line}")
+
 
 
 def _map_symbol(symbol: str):
@@ -139,10 +153,10 @@ def _parse_io_instruction(instruction, current_state, symbol):
     """
     move_map = {"L": "<", "R": ">"}
 
-    # Simple move shorthand (e.g., "R")
+    # Simple move shorthand (e.g., "R", "L")
     if instruction in move_map:
         return {
-            "new_state": current_state,
+            "new_state": current_state,  # Stay in the current state
             "write_symbol": _map_symbol(symbol),
             "move": move_map[instruction]
         }
@@ -150,11 +164,33 @@ def _parse_io_instruction(instruction, current_state, symbol):
     # Full instruction (e.g., "{write: 0, L: carry}")
     if instruction.startswith("{") and instruction.endswith("}"):
         instruction = instruction[1:-1].strip()  # Remove braces
-        parts = dict(item.strip().split(":") for item in instruction.split(","))
+        parts = instruction.split(",")
+
+        # Create a dictionary from the instruction, but handle cases where a part doesn't contain ":"
+        parsed_parts = {}
+        for part in parts:
+            key_value = part.strip().split(":", 1)
+            if len(key_value) == 2:
+                parsed_parts[key_value[0].strip()] = key_value[1].strip()
+            elif len(key_value) == 1:
+                # If we have only one value (e.g., "L"), assume it's a state transition to the current state
+                if key_value[0].strip() in move_map:
+                    parsed_parts[key_value[0].strip()] = current_state
+                else:
+                    # Handle unexpected format or invalid instruction
+                    return None
+
+        # Ensure the new state is properly set
+        new_state = parsed_parts.get("L", parsed_parts.get("R", current_state)).strip()
+
+        # Handle move direction (L or R) and the symbol to write
+        move = move_map.get("L", "<") if "L" in parsed_parts else move_map.get("R", ">")
+        write_symbol = _map_symbol(parsed_parts.get("write", symbol))
+
         return {
-            "new_state": parts.get("L", parts.get("R", current_state)).strip(),
-            "write_symbol": _map_symbol(parts.get("write", symbol)),
-            "move": move_map.get("L", "<") if "L" in parts else move_map.get("R", ">")
+            "new_state": new_state,
+            "write_symbol": write_symbol,
+            "move": move
         }
 
     return None
