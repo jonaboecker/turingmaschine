@@ -52,7 +52,7 @@ jobs:
     - name: Build Docker Image
       run: |
         cd raspberry
-        docker build -t flask-app:latest .
+        docker build --platform linux/arm64 -t flask-app:latest .
 
     - name: Save Docker Image to File
       run: |
