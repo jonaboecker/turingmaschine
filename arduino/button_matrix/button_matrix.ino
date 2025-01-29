@@ -1,3 +1,4 @@
+@ -1,108 +0,0 @@
 #include <Wire.h>
 
 // I2C-Adresse des MCP23017 (Standard: 0x20, anpassbar durch A0, A1, A2)
