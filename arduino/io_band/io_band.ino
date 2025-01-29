@@ -48,11 +48,11 @@ void loop() {
   //int sensor_val = read_voltage();
   //Serial.println(sensor_val);
   //connect_led_demo(sensor_val);
-  //led_demo();
-  if (flag == 0){
-    flag++;
-    led_3();
-  }
+  led_demo();
+  //if (flag == 0){
+  //  flag++;
+  //  led_3();
+  //}
 }
 
 void led_demo() {
