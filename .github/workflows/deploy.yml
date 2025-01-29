@@ -3,8 +3,8 @@ name: Test and Deploy
 on:
   push:
     branches: [ main ]
-    paths:
-      - raspberry/**
+    #paths:
+    #  - raspberry/**
   pull_request:
     branches: [ main ]
     paths:
