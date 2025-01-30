@@ -1,0 +1,12 @@
+[Unit] 
+Description=Starte Docker-Container mit neuem Image und öffne den Browser 
+After=multi-user.target 
+
+[Service] 
+Environment=DISPLAY=:0 
+ExecStart=/bin/bash /home/turingmaschine/Desktop/startup.sh 
+Restart=always 
+User=turingmaschine 
+
+[Install] 
+WantedBy=multi-user.target

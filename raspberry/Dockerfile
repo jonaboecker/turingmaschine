@@ -1,4 +1,4 @@
-FROM python:3.12-slim-bullseye
+FROM --platform=$TARGETPLATFORM python:3.12-slim-bullseye
 LABEL authors="jonab"
 
 # Install system dependencies

@@ -55,9 +55,11 @@ def parse_turing_machine(file_path, language: PROGRAM_LANGUAGES = PROGRAM_LANGUA
     return util.semantic_analyzer(turing_machine)
 
 
+# pylint: disable=too-many-branches
 def _parse_io_syntax(lines, turing_machine):
     """
-    Parses the Turing machine in io syntax, allowing symbols in brackets and implicit state transitions.
+    Parses the Turing machine in io syntax, allowing symbols in brackets and implicit state
+    transitions.
     """
     table_started = False
     current_state = None
@@ -121,7 +123,6 @@ def _parse_io_syntax(lines, turing_machine):
                     turing_machine["errors"].append(f"Ungültige Anweisung: {line}")
 
 
-
 def _map_symbol(symbol: str):
     """
     Maps symbols in syntax to symbol Enum.
@@ -166,14 +167,16 @@ def _parse_io_instruction(instruction, current_state, symbol):
         instruction = instruction[1:-1].strip()  # Remove braces
         parts = instruction.split(",")
 
-        # Create a dictionary from the instruction, but handle cases where a part doesn't contain ":"
+        # Create a dictionary from the instruction,
+        # but handle cases where a part doesn't contain ":"
         parsed_parts = {}
         for part in parts:
             key_value = part.strip().split(":", 1)
             if len(key_value) == 2:
                 parsed_parts[key_value[0].strip()] = key_value[1].strip()
             elif len(key_value) == 1:
-                # If we have only one value (e.g., "L"), assume it's a state transition to the current state
+                # If we have only one value (e.g., "L"),
+                # assume it's a state transition to the current state
                 if key_value[0].strip() in move_map:
                     parsed_parts[key_value[0].strip()] = current_state
                 else:

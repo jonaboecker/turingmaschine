@@ -3,8 +3,8 @@ name: Test and Deploy
 on:
   push:
     branches: [ main ]
-    paths:
-      - raspberry/**
+    #paths:
+    #  - raspberry/**
   pull_request:
     branches: [ main ]
     paths:
@@ -49,10 +49,16 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
+    - name: Set up QEMU (for ARM64 emulation)
+      uses: docker/setup-qemu-action@v3
+
+    - name: Set up Docker Buildx (for multi-platform builds)
+      uses: docker/setup-buildx-action@v3
+
     - name: Build Docker Image
       run: |
         cd raspberry
-        docker build -t flask-app:latest .
+        docker buildx build --platform linux/arm64 -t flask-app:latest . --load
 
     - name: Save Docker Image to File
       run: |
