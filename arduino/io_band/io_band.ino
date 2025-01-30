@@ -48,11 +48,11 @@ void loop() {
   //int sensor_val = read_voltage();
   //Serial.println(sensor_val);
   //connect_led_demo(sensor_val);
-  led_demo();
-  //if (flag == 0){
-  //  flag++;
-  //  led_3();
-  //}
+  //led_demo();
+  if (flag == 0){
+    flag++;
+    led_3();
+  }
 }
 
 void led_demo() {
@@ -104,7 +104,7 @@ int read_voltage() {
 }
 
 void connect_led_demo(int val) {
-  WS2812B.setBrightness(10); // a value from 0 to 255
+  WS2812B.setBrightness(255); // a value from 0 to 255
 
   for (int i = 0; i < dictSize; i++) {
     int threshold = stripe_dict[i].sensor_val;
