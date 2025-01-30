@@ -30,7 +30,10 @@ void setup() {
 
 void loop() {
     digitalWrite(Sleep, HIGH); //A logic high allows normal operation of the A4988 by removing from sleep
-    stepper.rotate(90);
+    stepper.rotate(20);
+    delay(100);
+    stepper.rotate(-20);
+    Serial.print("Pressed");
     delay(3000);
 
 }
