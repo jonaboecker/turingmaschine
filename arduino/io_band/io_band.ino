@@ -57,7 +57,7 @@ void loop() {
 
 void led_demo() {
   WS2812B.clear();  // set all pixel colors to 'off'. It only takes effect if pixels.show() is called
-  WS2812B.setBrightness(10); // a value from 0 to 255
+  WS2812B.setBrightness(255); // a value from 0 to 255
 
   // turn pixels to green one by one with delay between each pixel
   for (int pixel = 0; pixel < NUM_PIXELS; pixel++) {         // for each pixel
@@ -83,7 +83,7 @@ void led_demo() {
 
 void led_3(){
   WS2812B.clear();  // set all pixel colors to 'off'. It only takes effect if pixels.show() is called
-  WS2812B.setBrightness(10); // a value from 0 to 255
+  WS2812B.setBrightness(255); // a value from 0 to 255
 
   WS2812B.setPixelColor(0, WS2812B.Color(255, 0, 0));  // it only takes effect if pixels.show() is called
   WS2812B.setPixelColor(1, WS2812B.Color(0, 255, 0));  // it only takes effect if pixels.show() is called

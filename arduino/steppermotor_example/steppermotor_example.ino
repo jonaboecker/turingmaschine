@@ -10,11 +10,13 @@ int MS3 = 5; //GPIO5 in Arduino UNO --- MS3 for A4988
 
 //Motor Specs
 const int spr = 200; //Steps per revolution
-int RPM = 10; //Motor Speed in revolutions per minute
-int Microsteps = 4; //Stepsize (1 for full steps, 2 for half steps, 4 for quarter steps, etc)
+int RPM = 20; //Motor Speed in revolutions per minute
+int Microsteps = 8; //Stepsize (1 for full steps, 2 for half steps, 4 for quarter steps, etc)
 
 //Providing parameters for motor control
 A4988 stepper(spr, Dire, Step, MS1, MS2, MS3);
+
+int flag = 1;
 
 void setup() {
   Serial.begin(9600);
@@ -29,11 +31,31 @@ void setup() {
 }
 
 void loop() {
-    digitalWrite(Sleep, HIGH); //A logic high allows normal operation of the A4988 by removing from sleep
-    stepper.rotate(20);
-    delay(100);
-    stepper.rotate(-20);
-    Serial.print("Pressed");
-    delay(3000);
+  digitalWrite(Sleep, HIGH); //A logic high allows normal operation of the A4988 by removing from sleep
+  //if (flag < 1) {
+  //  stepper_drive_step(10, 1);
+  //  flag++;
+  //}
+  //demo_2();
+  stepper_press_button();
+}
 
+void stepper_press_button() {
+  stepper.rotate(20);
+  delay(100);
+  stepper.rotate(-20);
+  Serial.print("Pressed");
+  delay(3000);
+}
+
+void stepper_drive_step(int step, int dir) {
+  int rotation = step * 10;
+  if (dir > 0) {
+    rotation *= -1;
+  }
+  stepper.rotate(rotation);
+}
+
+void demo_2() {
+  stepper.rotate(360);
 }
