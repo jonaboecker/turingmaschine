@@ -6,8 +6,15 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     gcc \
     python3-dev \
+    git \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
+
+# Clone and build wiringPi manually
+RUN git clone https://github.com/WiringPi/WiringPi.git /tmp/wiringpi \
+    && cd /tmp/wiringpi \
+    && ./build \
+    && rm -rf /tmp/wiringpi
 
 # Set a working directory in the container
 WORKDIR /app
@@ -19,7 +26,7 @@ COPY requirements.txt requirements.txt
 RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir -r requirements.txt
 
-# English: Copy the rest of the code into the working directory
+# Copy the rest of the code into the working directory
 COPY . .
 
 # Set the environment variable for Flask
@@ -31,3 +38,4 @@ EXPOSE 5000
 
 # Start the application with Gunicorn
 CMD ["gunicorn", "--bind", "0.0.0.0:5000", "app:app"]
+
