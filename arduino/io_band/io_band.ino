@@ -3,143 +3,311 @@
 #include <avr/power.h>  // Required for 16 MHz Adafruit Trinket
 #endif
 
+#include <Wire.h>
+
+#include <Arduino.h>
+#include "A4988.h"
+
+#include <Adafruit_MCP23X17.h>
+
+// ---------- ---------- RGB-LED Stripe ---------- ----------
+
 #define PIN_WS2812B 4  // Arduino pin that connects to WS2812B
 #define NUM_PIXELS 60  // The number of LEDs (pixels) on WS2812B
 
 #define DELAY_INTERVAL 250  // 250ms pause between each pixel
 
-struct SensorData {
-  int sensor_val; // Key
-  int pos;        // Position
-  int state;      // State
+#define BRIGHTNESS 255  // a value from 0 to 255
+
+#define BLANK strip.Color(0, 0, 0)
+#define SYMBOL_1 strip.Color(255, 0, 0)
+#define SYMBOL_2 strip.Color(0, 255, 0)
+
+
+// ---------- ---------- I²C ---------- ----------
+
+#define IODIRA 0x00 // I/O Direction Register für Port A
+#define IODIRB 0x01 // I/O Direction Register für Port B
+#define GPIOA  0x12 // GPIO Register für Port A
+#define GPIOB  0x13 // GPIO Register für Port B
+
+
+// ---------- ---------- BUTTON-MATRIX ---------- ----------
+
+#define MCP23017_ADDRESS_MATRIX 0x20   // I2C-Adresse des MCP23017 (Standard: 0x20, anpassbar durch A0, A1, A2)
+
+
+// ---------- ---------- STEPPER-MOTOR ---------- ----------
+
+#define MCP23017_ADDRESS_STEPPER 0x21   // I2C-Adresse des MCP23017 (Standard: 0x20, anpassbar durch A0, A1, A2)
+
+#define STEP_A 1
+#define DIRE_A 2
+#define SLEEP_A 3
+#define MS1_A 4
+#define MS2_A 5
+#define MS3_A 6
+
+#define STEP_B 8
+#define DIRE_B 9
+#define SLEEP_B 10
+#define MS1_B 11
+#define MS2_B 12
+#define MS3_B 13
+
+// ---------- ---------- RGB-LED Stripe ---------- ----------
+
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_PIXELS, PIN_WS2812B, NEO_GRB + NEO_KHZ800);
+
+struct LedData {
+  int pos;    // Key
+  int state;  // State
 };
 
-const int VOLTAGE_SENSOR_PIN = A0;
+LedData led_state_dict[60];
 
-float voltage = 0;
 
-const int delta = 100;
+// ---------- ---------- I²C ---------- ----------
 
-int flag = 0;
+void writeMCP23017(uint8_t mcpAddress, uint8_t reg, uint8_t value) {
+  Wire.beginTransmission(mcpAddress);
+  Wire.write(reg);
+  Wire.write(value);
+  Wire.endTransmission();
+}
 
-SensorData stripe_dict[] = {
-  {700, 0, 0},
-  {200, 1, 0},
-  {700, 2, 0},
-  {200, 3, 0},
-  {700, 4, 0},
-  {200, 5, 0},
-  {700, 6, 0},
-  {200, 7, 0},
-  {700, 8, 0}
-};
+uint8_t readMCP23017(uint8_t mcpAddress, uint8_t reg) {
+  Wire.beginTransmission(mcpAddress);
+  Wire.write(reg);
+  Wire.endTransmission();
 
-const int dictSize = sizeof(stripe_dict) / sizeof(stripe_dict[0]);
+  Wire.requestFrom(mcpAddress, (uint8_t)1);
+  if (Wire.available()) {
+    return Wire.read();
+  }
+  return 0;
+}
 
-Adafruit_NeoPixel WS2812B(NUM_PIXELS, PIN_WS2812B, NEO_GRB + NEO_KHZ800);
+Adafruit_MCP23X17 mcp_stepper;
+
+
+// ---------- ---------- STEPPER-MOTOR ---------- ----------
+
+//Motor Specs
+const int spr = 200; //Steps per revolution
+int RPM = 20; //Motor Speed in revolutions per minute
+int Microsteps = 8; //Stepsize (1 for full steps, 2 for half steps, 4 for quarter steps, etc)
+
+//Providing parameters for motor control
+A4988 stepper_button(spr, DIRE_A, STEP_A, MS1_A, MS2_A, MS3_A);
+A4988 stepper_rail(spr, DIRE_B, STEP_B, MS1_B, MS2_B, MS3_B);
+
+// ---------- ---------- SETUP ---------- ----------
 
 void setup() {
-  WS2812B.begin();  // INITIALIZE WS2812B strip object (REQUIRED)
-
+  
+  // ---------- SERIAL SETUP ----------
   Serial.begin(9600);
+  while (!Serial) {
+    ; // Warte, bis die serielle Verbindung aktiv ist
+  }
+
+
+  // ---------- I²C SETUP ----------
+  if (!mcp_stepper.begin_I2C(MCP23017_ADDRESS_STEPPER)) {
+    Serial.println("Error.");
+    while (1);
+  }
+
+
+  // ---------- STEPPER SETUP ----------
+  // Set A0 to A5 as outputs
+  for (uint8_t pin = 0; pin <= 5; pin++) {
+      mcp_stepper.pinMode(pin, OUTPUT);
+  }
+  
+  // Set B0 to B5 (8-13) as outputs
+  for (uint8_t pin = 8; pin <= 13; pin++) {
+      mcp_stepper.pinMode(pin, OUTPUT);
+  }
+  
+  mcp_stepper.digitalWrite(STEP_A, LOW);
+  mcp_stepper.digitalWrite(DIRE_A, LOW);
+
+  mcp_stepper.digitalWrite(STEP_B, LOW);
+  mcp_stepper.digitalWrite(DIRE_B, LOW);
+
+  stepper_button.begin(RPM, Microsteps);
+  stepper_rail.begin(RPM, Microsteps);
+
+
+  // ---------- RGB-LED SETUP ----------
+  for(int i = 0; i < 60; i++) {
+      led_state_dict[i] = {i, 0};
+  }
+  strip.begin();  // INITIALIZE WS2812B strip object
+  strip.clear();  // SET all LED to OFF
+  strip.setBrightness(BRIGHTNESS);  // Set LED brightness to "BRIGHTNESS"
+  strip.show(); // adopt changes
+
+
+  // ---------- BUTTON-MATRIX SETUP ----------
+  Wire.begin();     // Initialisiere die I2C-Schnittstelle
+  // Konfiguriere alle Pins von Port A und Port B als Eingänge
+  writeMCP23017(MCP23017_ADDRESS_MATRIX, IODIRA, 0xFF); // 0xFF: Alle Pins von Port A als Eingang
+  writeMCP23017(MCP23017_ADDRESS_MATRIX, IODIRB, 0xFF); // 0xFF: Alle Pins von Port B als Eingang
 }
+
+
+// ---------- ---------- LOOP ---------- ----------
 
 void loop() {
-  //int sensor_val = read_voltage();
-  //Serial.println(sensor_val);
-  //connect_led_demo(sensor_val);
-  //led_demo();
-  if (flag == 0){
-    flag++;
-    led_3();
+  int result = calculateResult();
+  if (result != -1) {
+    Serial.print("Result,");
+    Serial.println(result);
+    
+    set_RGB_LED(result);
   }
+  delay(50);
 }
 
+
+// ---------- ---------- MAIN-METHODS ---------- ----------
+
+// BUTTON-MATRIX Initialisierung und Berechnung
+int calculateResult() {
+  static uint8_t lastInputsA = 0xFF;
+  static uint8_t lastInputsB = 0xFF;
+
+  // Lese die Eingänge von Port A und Port B
+  uint8_t inputsA = readMCP23017(MCP23017_ADDRESS_MATRIX, GPIOA);
+  uint8_t inputsB = readMCP23017(MCP23017_ADDRESS_MATRIX, GPIOB);
+
+  // Überprüfe, ob es Änderungen gab
+  if (inputsA == lastInputsA && inputsB == lastInputsB) {
+    return -1; // Keine Änderung
+  }
+
+  // Funktion zum Verarbeiten der Eingänge und Rückgabe des Index der Änderung
+  auto processInputs = [](uint8_t current, uint8_t last) -> int {
+    int lowIndex = -1;
+    int lowCount = 0;
+
+    for (int i = 0; i < 8; i++) {
+      uint8_t mask = 1 << i;
+      bool currentState = !(current & mask);
+      bool lastState = !(last & mask);
+
+      if (currentState) {
+        lowIndex = i;
+        lowCount++;
+      }
+    }
+
+    if (lowCount == 1) {
+      return lowIndex; // Rückgabe des Index der 0
+    } else {
+      return -1; // Keine oder mehrere 0en, verwerfen
+    }
+  };
+
+  // Verarbeite die Eingänge und überprüfe Änderungen
+  int changeA = processInputs(inputsA, lastInputsA);
+  int changeB = processInputs(inputsB, lastInputsB);
+
+  // Aktualisiere die letzten Zustände
+  lastInputsA = inputsA;
+  lastInputsB = inputsB;
+
+  // Berechne und gebe den neuen Wert nur aus, wenn es Änderungen gibt
+  if (changeA != -1 && changeB != -1) {
+    return changeA + 8 * changeB;
+  }
+
+  return -1; // Kein gültiges Ergebnis
+}
+
+
+// RGB-LED Stripe farbe setzen
+void set_RGB_LED(int new_pos) {
+  strip.clear();
+  strip.setBrightness(BRIGHTNESS);
+
+  for(LedData &led : led_state_dict) {
+    int pos = led.pos;
+    int state = led.state;
+    
+    if (pos == new_pos) {
+      state += 1;
+      state %= 3;
+      if (state == 0){
+        strip.setPixelColor(0, BLANK);
+      } else if (state == 1){
+        strip.setPixelColor(0, SYMBOL_1);
+      } else if (state == 2){
+        strip.setPixelColor(0, SYMBOL_2);
+      }
+    } else {
+      if (state == 0){
+        strip.setPixelColor(0, BLANK);
+      } else if (state == 1){
+        strip.setPixelColor(0, SYMBOL_1);
+      } else if (state == 2){
+        strip.setPixelColor(0, SYMBOL_2);
+      }
+    }
+  }
+  strip.show(); // adopt changes
+  Serial.println("LED_set");
+}
+
+
+// Stepper Motor Button Press
+void stepper_press_button() {
+  stepper_button.rotate(20);
+  delay(100);
+  stepper_button.rotate(-20);
+  Serial.print("Button_pressed");
+}
+
+
+
+// ---------- ---------- DEMO ---------- ----------
+
 void led_demo() {
-  WS2812B.clear();  // set all pixel colors to 'off'. It only takes effect if pixels.show() is called
-  WS2812B.setBrightness(255); // a value from 0 to 255
+  strip.clear();  // set all pixel colors to 'off'. It only takes effect if pixels.show() is called
+  strip.setBrightness(BRIGHTNESS); // a value from 0 to 255
 
   // turn pixels to green one by one with delay between each pixel
   for (int pixel = 0; pixel < NUM_PIXELS; pixel++) {         // for each pixel
-    WS2812B.setPixelColor(pixel, WS2812B.Color(0, 255, 0));  // it only takes effect if pixels.show() is called
+    strip.setPixelColor(pixel, strip.Color(0, 255, 0));  // it only takes effect if pixels.show() is called
     
     if(pixel >= 1) {
-      WS2812B.setPixelColor((pixel-1), WS2812B.Color(0, 0, 255));
+      strip.setPixelColor((pixel-1), strip.Color(0, 0, 255));
     }
 
     if(pixel >= 2) {
-      WS2812B.setPixelColor((pixel-2), WS2812B.Color(255, 0, 0));
+      strip.setPixelColor((pixel-2), strip.Color(255, 0, 0));
     }
 
     if(pixel >= 3) {
-      WS2812B.setPixelColor((pixel-3), WS2812B.Color(0, 0, 0));
+      strip.setPixelColor((pixel-3), strip.Color(0, 0, 0));
     }
 
-    WS2812B.show();
+    strip.show();
 
     delay(DELAY_INTERVAL);  // pause between each pixel
   }
 }
 
 void led_3(){
-  WS2812B.clear();  // set all pixel colors to 'off'. It only takes effect if pixels.show() is called
-  WS2812B.setBrightness(255); // a value from 0 to 255
+  strip.clear();  // set all pixel colors to 'off'. It only takes effect if pixels.show() is called
+  strip.setBrightness(BRIGHTNESS); // a value from 0 to 255
 
-  WS2812B.setPixelColor(0, WS2812B.Color(255, 0, 0));  // it only takes effect if pixels.show() is called
-  WS2812B.setPixelColor(1, WS2812B.Color(0, 255, 0));  // it only takes effect if pixels.show() is called
-  WS2812B.setPixelColor(2, WS2812B.Color(0, 0, 255));  // it only takes effect if pixels.show() is called
+  strip.setPixelColor(0, strip.Color(255, 0, 0));  // it only takes effect if pixels.show() is called
+  strip.setPixelColor(1, strip.Color(0, 255, 0));  // it only takes effect if pixels.show() is called
+  strip.setPixelColor(2, strip.Color(0, 0, 255));  // it only takes effect if pixels.show() is called
 
-  WS2812B.show();
-}
-
-int read_voltage() {
-  int sensorValue = analogRead(VOLTAGE_SENSOR_PIN);
-  /*
-  float voltage = sensorValue * (5/1024);
-  Serial.print("Spannung: ");
-  Serial.println(voltage);
-  */
-  delay(50);
-  return sensorValue;
-}
-
-void connect_led_demo(int val) {
-  WS2812B.setBrightness(255); // a value from 0 to 255
-
-  for (int i = 0; i < dictSize; i++) {
-    int threshold = stripe_dict[i].sensor_val;
-    if (val >= threshold - delta && val <= threshold + delta) {
-
-      /*
-      Serial.print("Threashold ");
-      Serial.print(stripe_dict[i].sensor_val);
-      Serial.print(" is greater or equal to ");
-      Serial.println(val);
-      */
-
-      int state = stripe_dict[i].state;
-      int pixel = stripe_dict[i].pos;
-      if (state == 0){
-        WS2812B.setPixelColor(pixel, WS2812B.Color(255, 0, 0));
-      } else if (state == 1){
-        WS2812B.setPixelColor(pixel, WS2812B.Color(0, 255, 0));
-      } else if (state == 2){
-        WS2812B.setPixelColor(pixel, WS2812B.Color(0, 0, 255));
-      } else if (state == 3){
-        WS2812B.setPixelColor(pixel, WS2812B.Color(0, 0, 0));
-      }
-
-      
-      Serial.print("Set Pixel ");
-      Serial.print(pixel);
-      Serial.print(" to state ");
-      Serial.println(state);
-
-      
-      stripe_dict[i].state += 1;
-      stripe_dict[i].state = stripe_dict[i].state % 4;
-      WS2812B.show();
-      delay(100);
-    }
-  }
+  strip.show();
 }
