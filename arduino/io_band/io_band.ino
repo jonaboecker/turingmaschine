@@ -21,7 +21,7 @@
 
 #define BLANK strip.Color(0, 0, 0)
 #define SYMBOL_1 strip.Color(255, 0, 0)
-#define SYMBOL_2 strip.Color(0, 255, 0)
+#define SYMBOL_2 strip.Color(0, 0, 255)
 
 
 // ---------- ---------- I²C ---------- ----------
@@ -38,7 +38,7 @@
 
 
 // ---------- ---------- STEPPER-MOTOR ---------- ----------
-
+/*
 #define MCP23017_ADDRESS_STEPPER 0x21   // I2C-Adresse des MCP23017 (Standard: 0x20, anpassbar durch A0, A1, A2)
 
 #define STEP_A 1
@@ -54,7 +54,7 @@
 #define MS1_B 11
 #define MS2_B 12
 #define MS3_B 13
-
+*/
 // ---------- ---------- RGB-LED Stripe ---------- ----------
 
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_PIXELS, PIN_WS2812B, NEO_GRB + NEO_KHZ800);
@@ -92,7 +92,7 @@ Adafruit_MCP23X17 mcp_stepper;
 
 
 // ---------- ---------- STEPPER-MOTOR ---------- ----------
-
+/*
 //Motor Specs
 const int spr = 200; //Steps per revolution
 int RPM = 20; //Motor Speed in revolutions per minute
@@ -101,7 +101,7 @@ int Microsteps = 8; //Stepsize (1 for full steps, 2 for half steps, 4 for quarte
 //Providing parameters for motor control
 A4988 stepper_button(spr, DIRE_A, STEP_A, MS1_A, MS2_A, MS3_A);
 A4988 stepper_rail(spr, DIRE_B, STEP_B, MS1_B, MS2_B, MS3_B);
-
+*/
 // ---------- ---------- SETUP ---------- ----------
 
 void setup() {
@@ -112,7 +112,7 @@ void setup() {
     ; // Warte, bis die serielle Verbindung aktiv ist
   }
 
-
+/*
   // ---------- I²C SETUP ----------
   if (!mcp_stepper.begin_I2C(MCP23017_ADDRESS_STEPPER)) {
     Serial.println("Error.");
@@ -139,7 +139,7 @@ void setup() {
 
   stepper_button.begin(RPM, Microsteps);
   stepper_rail.begin(RPM, Microsteps);
-
+*/
 
   // ---------- RGB-LED SETUP ----------
   for(int i = 0; i < 60; i++) {
@@ -162,6 +162,40 @@ void setup() {
 // ---------- ---------- LOOP ---------- ----------
 
 void loop() {
+  toggle_LED();
+  delay(50);
+
+  /*
+  // Wait until there is data available
+  if (Serial.available() > 0) {
+    String input = Serial.readString();  // Read the incoming data as a string
+
+    if (input.indexOf("MotorA")) {
+      stepper_press_button();
+      toggle_LED();
+    } else if (input.indexOf("MotorB")) {
+
+      int firstUnderscore = input.indexOf('_');
+      int secondUnderscore = input.indexOf('_', firstUnderscore + 1);
+
+      // Extract numbers as substrings
+      String direction_s = input.substring(firstUnderscore + 1, secondUnderscore);
+      String speed_s = input.substring(secondUnderscore + 1);
+
+      // Convert to integers
+      int direction = direction_s.toInt();
+      int speed = speed_s.toInt();   
+
+      stepper_move(direction, speed);
+    }
+  }
+  */
+}
+
+
+// ---------- ---------- MAIN-METHODS ---------- ----------
+
+void toggle_LED() {
   int result = calculateResult();
   if (result != -1) {
     Serial.print("Result,");
@@ -169,11 +203,8 @@ void loop() {
     
     set_RGB_LED(result);
   }
-  delay(50);
 }
 
-
-// ---------- ---------- MAIN-METHODS ---------- ----------
 
 // BUTTON-MATRIX Initialisierung und Berechnung
 int calculateResult() {
@@ -183,6 +214,8 @@ int calculateResult() {
   // Lese die Eingänge von Port A und Port B
   uint8_t inputsA = readMCP23017(MCP23017_ADDRESS_MATRIX, GPIOA);
   uint8_t inputsB = readMCP23017(MCP23017_ADDRESS_MATRIX, GPIOB);
+
+  
 
   // Überprüfe, ob es Änderungen gab
   if (inputsA == lastInputsA && inputsB == lastInputsB) {
@@ -241,20 +274,23 @@ void set_RGB_LED(int new_pos) {
     if (pos == new_pos) {
       state += 1;
       state %= 3;
+      Serial.println("New state:");
+      Serial.print(state);
+      led_state_dict[pos].state = state;
       if (state == 0){
-        strip.setPixelColor(0, BLANK);
+        strip.setPixelColor(pos, BLANK);
       } else if (state == 1){
-        strip.setPixelColor(0, SYMBOL_1);
+        strip.setPixelColor(pos, SYMBOL_1);
       } else if (state == 2){
-        strip.setPixelColor(0, SYMBOL_2);
+        strip.setPixelColor(pos, SYMBOL_2);
       }
     } else {
       if (state == 0){
-        strip.setPixelColor(0, BLANK);
+        strip.setPixelColor(pos, BLANK);
       } else if (state == 1){
-        strip.setPixelColor(0, SYMBOL_1);
+        strip.setPixelColor(pos, SYMBOL_1);
       } else if (state == 2){
-        strip.setPixelColor(0, SYMBOL_2);
+        strip.setPixelColor(pos, SYMBOL_2);
       }
     }
   }
@@ -262,16 +298,23 @@ void set_RGB_LED(int new_pos) {
   Serial.println("LED_set");
 }
 
-
+/*
 // Stepper Motor Button Press
 void stepper_press_button() {
-  stepper_button.rotate(20);
+  stepper_button.rotate(25);
   delay(100);
-  stepper_button.rotate(-20);
-  Serial.print("Button_pressed");
+  stepper_button.rotate(-25);
+  Serial.print("button_pressed");
 }
 
 
+// Stepper Motor Move
+void stepper_move(int dir, int speed) {
+
+  stepper_button.rotate((20 * dir));
+  Serial.print("moved");
+}
+*/
 
 // ---------- ---------- DEMO ---------- ----------
 

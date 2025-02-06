@@ -1,4 +1,3 @@
-@ -1,108 +0,0 @@
 #include <Wire.h>
 
 // I2C-Adresse des MCP23017 (Standard: 0x20, anpassbar durch A0, A1, A2)
@@ -38,7 +37,8 @@ int calculateResult() {
   uint8_t inputsA = readMCP23017(GPIOA);
   uint8_t inputsB = readMCP23017(GPIOB);
 
-  // Überprüfe, ob es Änderungen gab
+
+    // Überprüfe, ob es Änderungen gab
   if (inputsA == lastInputsA && inputsB == lastInputsB) {
     return -1; // Keine Änderung
   }
