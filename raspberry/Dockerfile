@@ -1,4 +1,5 @@
 FROM python:3.12-slim-bullseye
+LABEL authors="jonab"
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -13,6 +14,7 @@ RUN apt-get update && apt-get install -y \
 RUN if ! command -v gpio &> /dev/null; then \
     git clone https://github.com/WiringPi/WiringPi.git /tmp/wiringpi \
     && cd /tmp/wiringpi \
+    && sed -i 's/sudo //g' build \  # Entfernt sudo aus dem Skript
     && chmod +x build \
     && ./build \
     && rm -rf /tmp/wiringpi; \
