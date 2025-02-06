@@ -15,6 +15,7 @@ RUN if ! command -v gpio &> /dev/null; then \
     git clone https://github.com/WiringPi/WiringPi.git /tmp/wiringpi \
     && cd /tmp/wiringpi \
     && sed -i 's/sudo //g' build \
+    && sed -i 's/uninstall/true/g' build \
     && chmod +x build \
     && ./build \
     && rm -rf /tmp/wiringpi; \
