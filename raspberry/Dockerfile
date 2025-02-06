@@ -1,4 +1,5 @@
-FROM --platform=$TARGETPLATFORM python:3.12-slim-bullseye
+FROM --platform=$BUILDPLATFORM python:3.12-slim-bullseye
+
 LABEL authors="jonab"
 
 # Install system dependencies
@@ -10,11 +11,16 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Clone and build wiringPi manually
-RUN git clone https://github.com/WiringPi/WiringPi.git /tmp/wiringpi \
+# Falls wiringPi nicht per apt installierbar ist, baue es manuell
+RUN if [ "$(uname -m)" = "aarch64" ] || [ "$(uname -m)" = "armv7l" ]; then \
+    git clone https://github.com/WiringPi/WiringPi.git /tmp/wiringpi \
     && cd /tmp/wiringpi \
+    && sed -i 's/sudo //g' build \
+    && sed -i 's/uninstall/true/g' build \
+    && chmod +x build \
     && ./build \
-    && rm -rf /tmp/wiringpi
+    && rm -rf /tmp/wiringpi; \
+    fi
 
 # Set a working directory in the container
 WORKDIR /app
@@ -38,4 +44,3 @@ EXPOSE 5000
 
 # Start the application with Gunicorn
 CMD ["gunicorn", "--bind", "0.0.0.0:5000", "app:app"]
-
