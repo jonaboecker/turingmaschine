@@ -1,4 +1,5 @@
-FROM --platform=$TARGETPLATFORM python:3.12-slim-bullseye
+FROM --platform=$BUILDPLATFORM python:3.12-slim-bullseye
+
 LABEL authors="jonab"
 
 # Install system dependencies
@@ -10,8 +11,8 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Falls wiringpi nicht per apt installierbar ist, baue es manuell
-RUN if ! command -v gpio &> /dev/null; then \
+# Falls wiringPi nicht per apt installierbar ist, baue es manuell
+RUN if [ "$(uname -m)" = "aarch64" ] || [ "$(uname -m)" = "armv7l" ]; then \
     git clone https://github.com/WiringPi/WiringPi.git /tmp/wiringpi \
     && cd /tmp/wiringpi \
     && sed -i 's/sudo //g' build \
