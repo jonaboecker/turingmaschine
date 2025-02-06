@@ -67,7 +67,7 @@ jobs:
         docker save flask-app:latest -o ../output/flask-app.tar
 
     - name: Upload Docker Image to Artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: flask-app-image
         path: output/flask-app.tar
