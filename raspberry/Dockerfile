@@ -1,4 +1,4 @@
-FROM python:3.13-bullseye
+FROM balenalib/raspberry-pi-debian-python:latest
 
 LABEL authors="jonab"
 
@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-RUN git clone https://github.com/WiringPi/WiringPi.git /tmp/wiringpi \
+RUN rm -rf /tmp/wiringpi && git clone https://github.com/WiringPi/WiringPi.git /tmp/wiringpi \
     && cd /tmp/wiringpi \
     && sed -i 's/sudo //g' build \
     && sed -i 's/uninstall/true/g' build \
