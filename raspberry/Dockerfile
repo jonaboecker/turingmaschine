@@ -11,14 +11,6 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-RUN rm -rf /tmp/wiringpi && git clone https://github.com/WiringPi/WiringPi.git /tmp/wiringpi \
-    && cd /tmp/wiringpi \
-    && sed -i 's/sudo //g' build \
-    && sed -i 's/uninstall/true/g' build \
-    && chmod +x build \
-    && ./build \
-    && rm -rf /tmp/wiringpi
-
 # Set a working directory in the container
 WORKDIR /app
 
