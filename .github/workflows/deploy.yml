@@ -55,7 +55,7 @@ jobs:
         run: |
           mkdir -p output
           cd raspberry
-          docker buildx build --platform linux/arm64 \
+          docker buildx build --platform linux/arm/v6 \
             -t flask-app:latest . \
             --output type=docker,dest=../output/flask-app.tar  # Correct way to export a Docker image
       
