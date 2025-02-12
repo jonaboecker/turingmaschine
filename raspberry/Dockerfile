@@ -7,6 +7,7 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     gcc \
     python3-dev \
+    python3-smbus \
     git \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
