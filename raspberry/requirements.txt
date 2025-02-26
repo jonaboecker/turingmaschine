@@ -4,7 +4,7 @@ Flask-SocketIO~=5.5.1
 gunicorn~=23.0.0
 
 # Hardware:
-smbus~=1.1.1; platform_system == "Linux"
+smbus~=1.1.post2; platform_system == "Linux"
 
 # linters:
 pylint~=3.3.2
