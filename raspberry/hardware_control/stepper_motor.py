@@ -75,7 +75,7 @@ class StepperMotorController:
     def move_robot(self, direction: assets.ROBOT_DIRECTIONS, speed: int = 5, steps: int= 1):
         """
         Moves the robot in the specified direction by the specified amount of steps.
-        :return: False if the robot would move out of the LED strip.
+        :return: False if the robot would move out of the LED strip. Else True
         
         Args:
             direction (str): "LEFT" or "RIGHT" to set rotation direction.
@@ -86,8 +86,9 @@ class StepperMotorController:
         if platform.system() == "Linux":
             command = f"MOVE {direction} {delay_in_ms} {steps}"
             self.send_command(command)
+            return False #change to True if ensured that executed correctly
         else:
-            print(f"Move robot: {direction} {delay_in_ms} {steps}")
+            print(f"Move robot: direction: {direction} delay_in_ms: {delay_in_ms} steps: {steps}")
             time.sleep(delay_in_ms/10)
             return True
 
