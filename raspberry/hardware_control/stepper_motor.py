@@ -2,7 +2,12 @@
 Stepper Motor Control via Serial (UART) with Arduino.
 """
 import time
-import serial
+import platform
+
+import assets
+
+if platform.system() == "Linux":
+    import serial
 
 SERIAL_PORT = "/dev/ttyACM0"
 BAUDRATE = 9600
@@ -19,13 +24,14 @@ class StepperMotorController:
       - MOVE <direction> <speed> <steps>
     """
     def __init__(self, serial_port=SERIAL_PORT, baudrate=BAUDRATE, timeout=TIMEOUT):
-        try:
-            self.ser = serial.Serial(serial_port, baudrate, timeout=timeout)
-            time.sleep(2)  # Warte auf Initialisierung
-            self.flush_serial()
-        except Exception as e:
-            print(f"Error opening serial port: {e}")
-            raise e
+        if platform.system() == "Linux":
+            try:
+                self.ser = serial.Serial(serial_port, baudrate, timeout=timeout)
+                time.sleep(2)  # Warte auf Initialisierung
+                self.flush_serial()
+            except Exception as e:
+                print(f"Error opening serial port: {e}")
+                raise e
 
     def flush_serial(self):
         """Leert den Eingangsbuffer, um alte Daten zu entfernen."""
@@ -43,7 +49,8 @@ class StepperMotorController:
 
     def toggle_io_band(self):
         """Toggles the IO band state."""
-        self.send_command("TOGGLE")
+        if platform.system() == "Linux":
+            self.send_command("TOGGLE")
 
     def setup_pins(self):
         """Cleans up the Aduino pins."""
@@ -65,18 +72,24 @@ class StepperMotorController:
         command = f"ROTATE {steps} {direction.upper()} {delay_in_sec}"
         self.send_command(command)
 
-    def move_robot(self, direction: str, delay_in_ms: int = 10, steps: int= 1):
+    def move_robot(self, direction: assets.ROBOT_DIRECTIONS, speed: int = 5, steps: int= 1):
         """
         Moves the robot in the specified direction by the specified amount of steps.
         :return: False if the robot would move out of the LED strip.
         
         Args:
             direction (str): "LEFT" or "RIGHT" to set rotation direction.
-            delay_in_ms (int): Delay between each step.
+            speed (int): int from 1 to 10 representing the robot-speed, 1 is slow 10 is fast.
             steps (int): The amount of steps the robot should move.
         """
-        command = f"MOVE {direction.upper()} {delay_in_ms} {steps}"
-        self.send_command(command)
+        delay_in_ms = 50 // speed
+        if platform.system() == "Linux":
+            command = f"MOVE {direction} {delay_in_ms} {steps}"
+            self.send_command(command)
+        else:
+            print(f"Move robot: {direction} {delay_in_ms} {steps}")
+            time.sleep(delay_in_ms/10)
+            return True
 
 #def main():
 #    controller = None

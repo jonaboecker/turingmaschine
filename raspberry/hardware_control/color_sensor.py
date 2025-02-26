@@ -4,6 +4,8 @@ This module executes color_sensor.cpp to determine the detected color.
 
 import subprocess
 import os
+import platform
+from random import randrange
 
 import assets
 
@@ -39,6 +41,10 @@ def get_color():
         IO_BAND_COLORS: The detected color as an Enum ('RED', 'BLUE', or 'BLANK'),
                         or None in case of an error.
     """
+    if platform.system() != "Linux":
+        random_color = assets.IO_BAND_COLORS(randrange(3))
+        print(f"Random detected and returned color: {random_color}")
+        return random_color
     # Check if the compiled executable exists, otherwise compile it
     if not os.path.exists(EXE_FILE):
         if not compile_cpp():
