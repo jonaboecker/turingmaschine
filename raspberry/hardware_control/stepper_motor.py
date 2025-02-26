@@ -87,10 +87,9 @@ class StepperMotorController:
             command = f"MOVE {direction} {delay_in_ms} {steps}"
             self.send_command(command)
             return False #change to True if ensured that executed correctly
-        else:
-            print(f"Move robot: direction: {direction} delay_in_ms: {delay_in_ms} steps: {steps}")
-            time.sleep(delay_in_ms/10)
-            return True
+        print(f"Move robot: direction: {direction} delay_in_ms: {delay_in_ms} steps: {steps}")
+        time.sleep(delay_in_ms/10)
+        return True
 
 #def main():
 #    controller = None
