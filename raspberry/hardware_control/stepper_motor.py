@@ -64,7 +64,7 @@ class StepperMotorController:
         command = f"ROTATE {steps} {direction.upper()} {delay_in_sec}"
         self.send_command(command)
 
-    def move_robot(self, direction: str, speed: int, steps: int):
+    def move_robot(self, direction: str, speed: int=1, steps: int=1):
         """
         Moves the robot in the specified direction by the specified amount of steps.
         :return: False if the robot would move out of the LED strip.
