@@ -13,6 +13,19 @@ SERIAL_PORT = "/dev/ttyACM0"
 BAUDRATE = 9600
 TIMEOUT = 2
 
+SPEED_DELAY_MAP = {
+    1: 55,
+    2: 50,
+    3: 45,
+    4: 40,
+    5: 35,
+    6: 30,
+    7: 25,
+    8: 20,
+    9: 15,
+    10: 10
+}
+
 class StepperMotorController:
     """
     Controls the stepper motors via a serial connection.
@@ -20,57 +33,46 @@ class StepperMotorController:
       - TOGGLE
       - SETUP
       - CLEANUP
-      - ROTATE <steps> <direction> <delayInSec>
       - MOVE <direction> <speed> <steps>
     """
     def __init__(self, serial_port=SERIAL_PORT, baudrate=BAUDRATE, timeout=TIMEOUT):
         if platform.system() == "Linux":
             try:
                 self.ser = serial.Serial(serial_port, baudrate, timeout=timeout)
-                time.sleep(2)  # Warte auf Initialisierung
-                self.flush_serial()
+                time.sleep(2)
+                self.ser.reset_input_buffer()
             except Exception as e:
                 print(f"Error opening serial port: {e}")
                 raise e
 
-    def flush_serial(self):
-        """Leert den Eingangsbuffer, um alte Daten zu entfernen."""
-        self.ser.reset_input_buffer()
-
-    def send_command(self, command: str):
-        """Sends a command and waits for a response."""
+    def send_command(self, command: str) -> int:
+        """Sends a command and returns 1 if successful, 0 otherwise."""
         try:
-            self.ser.write((command + "\n").encode('utf-8'))
+            encoded_cmd = (command + "\n").encode('utf-8')
+            bytes_written = self.ser.write(encoded_cmd)
             time.sleep(0.1)
+            expected_bytes = len(encoded_cmd)
+            return bytes_written == expected_bytes
         except serial.SerialTimeoutException:
             print("Timeout error: Command could not be sent in time.")
+            return 0
         except serial.SerialException as e:
             print(f"Serial error: {e}")
+            return 0
 
     def toggle_io_band(self):
         """Toggles the IO band state."""
         if platform.system() == "Linux":
-            self.send_command("TOGGLE")
+            return self.send_command("TOGGLE")
+        return False
 
     def setup_pins(self):
         """Cleans up the Aduino pins."""
-        self.send_command("SETUP")
+        return self.send_command("SETUP")
 
     def cleanup(self):
         """Cleans up the Aduino pins."""
-        self.send_command("CLEANUP")
-
-    def rotate(self, steps: int, direction: str, delay_in_sec: float):
-        """
-        Rotates the motor by a specified number of steps in the given direction.
-        
-        Args:1
-            steps (int): Number of steps to move.
-            direction (str): "LEFT" or "RIGHT" to set rotation direction.
-            delay (float): Delay between each step (controls speed).
-        """
-        command = f"ROTATE {steps} {direction.upper()} {delay_in_sec}"
-        self.send_command(command)
+        return self.send_command("CLEANUP")
 
     def move_robot(self, direction: assets.ROBOT_DIRECTIONS, speed: int = 5, steps: int= 1):
         """
@@ -82,13 +84,13 @@ class StepperMotorController:
             speed (int): int from 1 to 10 representing the robot-speed, 1 is slow 10 is fast.
             steps (int): The amount of steps the robot should move.
         """
-        delay_in_ms = 50 // speed
+        delay_in_ms = SPEED_DELAY_MAP.get(speed, 10)
         if platform.system() == "Linux":
-            command = f"MOVE {direction} {delay_in_ms} {steps}"
-            self.send_command(command)
-            return False #change to True if ensured that executed correctly
+            drict = "LEFT" if direction == assets.ROBOT_DIRECTIONS.LEFT else "RIGHT"
+            command = f"MOVE {drict} {delay_in_ms} {steps}"
+            return self.send_command(command)
         print(f"Move robot: direction: {direction} delay_in_ms: {delay_in_ms} steps: {steps}")
-        time.sleep(delay_in_ms/10)
+        time.sleep(delay_in_ms / 10)
         return True
 
 #def main():
@@ -101,8 +103,7 @@ class StepperMotorController:
 #            print("1: TOGGLE")
 #            print("2: SETUP")
 #            print("3: CLEANUP")
-#            print("4: ROTATE <steps> <direction> <delayInSec>")
-#            print("5: MOVE <direction> <speed> <steps>")
+#            print("4: MOVE <direction> <speed> <steps>")
 #            print("q: Quit")
 #            choice = input("Your choice: ").strip().lower()
 #
@@ -116,14 +117,6 @@ class StepperMotorController:
 #            elif choice == '3':
 #                controller.cleanup()
 #            elif choice == '4':
-#                try:
-#                    steps = int(input(" Number of steps: "))
-#                    direction = input(" Direction (LEFT/RIGHT): ").strip().upper()
-#                    delay = float(input(" Delay in seconds (e.g., 0.01): ").strip())
-#                    controller.rotate(steps, direction, delay)x
-#                except ValueError:
-#                    print("Invalid input for ROTATE!")
-#            elif choice == '5':
 #                try:
 #                    direction = input("Direction (LEFT/RIGHT): ").strip().upper()
 #                    speed = int(input("Speed (integer): "))
