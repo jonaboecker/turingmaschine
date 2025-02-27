@@ -49,15 +49,8 @@ def get_color():
     if not os.path.exists(EXE_FILE):
         if not compile_cpp():
             return None
-
     detected_color = run_cpp()
-
-    try:
-        return assets.IO_BAND_COLORS[detected_color]  # Example: assets.IO_BAND_COLORS['RED']
-    except KeyError:
-        # Handle invalid color values
-        print(f"Invalid color detected: {detected_color}")
-        return None
+    return assets.IO_BAND_COLORS[detected_color]  # Example: assets.IO_BAND_COLORS['RED']
 
 # Test function call
 #if __name__ == "__main__":
