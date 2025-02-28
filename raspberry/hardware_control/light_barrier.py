@@ -12,7 +12,7 @@ else:
 
 # gpiod pin for the light barrier
 SENSOR_PIN = 17
-CHIP = "/dev/gpiochip4"  # Standard GPIO-Chip auf dem Raspberry Pi 5
+CHIP = "/dev/gpiochip0"  # Standard GPIO-Chip auf dem Raspberry Pi 5
 
 # Initialize gpiod
 if platform.system() == "Linux":
