@@ -48,7 +48,6 @@ def get_color():
     # Check if the compiled executable exists, otherwise compile it
     if not os.path.exists(EXE_FILE):
         if not compile_cpp():
-            return None
     detected_color = run_cpp()
     return assets.IO_BAND_COLORS[detected_color]  # Example: assets.IO_BAND_COLORS['RED']
 
