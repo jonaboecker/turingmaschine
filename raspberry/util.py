@@ -73,7 +73,7 @@ def semantic_analyzer(turing_machine):
     for transition in transitions.values():
         if transition["write_symbol"] not in assets.IO_BAND_COLORS:
             turing_machine["errors"].append(
-                f"Zeichen '{transition["write_symbol"]}' ist nicht erlaubt. "
+                f"Zeichen '{transition['write_symbol']}' ist nicht erlaubt. "
                 f"Bitte verwende nur '0', '1', '_', ' '.")
 
     return turing_machine
