@@ -17,8 +17,9 @@ PROGRAM_LANGUAGES = Enum('Language',
 # colors of the io band
 IO_BAND_COLORS = Enum('Color', [('RED', 0), ('BLUE', 1), ('BLANK', 2)])
 
-# LED amount
+# LEDs
 LED_AMOUNT = 60
+STEPS_BETWEEN_LEDS = 13
 
 # directions the robot can move
 ROBOT_DIRECTIONS = Enum('Direction', [('LEFT', 1), ('RIGHT', 2), ('HOLD', 3)])

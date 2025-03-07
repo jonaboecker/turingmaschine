@@ -35,6 +35,7 @@ class StepperMotorController:
       - CLEANUP
       - MOVE <direction> <speed> <steps>
     """
+    current_position = 1
     def __init__(self, serial_port=SERIAL_PORT, baudrate=BAUDRATE, timeout=TIMEOUT):
         if platform.system() == "Linux":
             try:
@@ -74,6 +75,27 @@ class StepperMotorController:
         """Cleans up the Aduino pins."""
         return self.send_command("CLEANUP")
 
+    def move_robot_led_step(self, direction: assets.ROBOT_DIRECTIONS, speed=1, steps=1):
+        """
+        Moves the robot by one LED step in the specified direction.
+        :return: False if the robot would move out of the LED strip.
+
+        Args:
+            direction (Enum): The direction in which the robot should move
+            Enum('Direction', [('LEFT', 1), ('RIGHT', 2)]).
+            speed (int): The speed of the robot.
+            steps (int): The amount of LEDs the robot should move.
+        """
+        # Count the new position
+        if direction == assets.ROBOT_DIRECTIONS.LEFT:
+            self.current_position -= steps
+        elif direction == assets.ROBOT_DIRECTIONS.RIGHT:
+            self.current_position += steps
+        # Check if the new position is inside band
+        if self.current_position < 1 or self.current_position > assets.LED_AMOUNT:
+            return False
+        return self.move_robot(direction, speed, assets.STEPS_BETWEEN_LEDS * steps)
+
     def move_robot(self, direction: assets.ROBOT_DIRECTIONS, speed: int = 5, steps: int= 1):
         """
         Moves the robot in the specified direction by the specified amount of steps.
@@ -92,48 +114,3 @@ class StepperMotorController:
         print(f"Move robot: direction: {direction} delay_in_ms: {delay_in_ms} steps: {steps}")
         time.sleep(delay_in_ms / 10)
         return True
-
-#def main():
-#    controller = None
-#    try:
-#        controller = StepperMotorController()
-#
-#       while True:
-#            print("\n Choose a command:")
-#            print("1: TOGGLE")
-#            print("2: SETUP")
-#            print("3: CLEANUP")
-#            print("4: MOVE <direction> <speed> <steps>")
-#            print("q: Quit")
-#            choice = input("Your choice: ").strip().lower()
-#
-#            if choice == 'q':
-#                print("Exiting program.")
-#                break
-#            elif choice == '1':
-#                controller.toggle_io_band()
-#            elif choice == '2':
-#                controller.setup_pins()
-#            elif choice == '3':
-#                controller.cleanup()
-#            elif choice == '4':
-#                try:
-#                    direction = input("Direction (LEFT/RIGHT): ").strip().upper()
-#                    speed = int(input("Speed (integer): "))
-#                    steps = int(input(" Number of steps: "))
-#                    controller.move_robot(direction, speed, steps)
-#                except ValueError:
-#                    print("Invalid input for MOVE!")
-#            else:
-#                print("Invalid choice. Please try again.")
-#
-#    except KeyboardInterrupt:
-#        print("\n Program interrupted by user.")
-#    except Exception as e:
-#        print(f"Error: {e}")
-#    finally:
-#        if controller:
-#            controller.close()
-#
-#if __name__ == "__main__":
-#    main()

@@ -72,7 +72,7 @@ class StateMachine:
             if self.should_stop:
                 print("Robot go_to_first_color stopped by user")
                 return False
-            if not self.stepper.move_robot(assets.ROBOT_DIRECTIONS.RIGHT, self.speed):
+            if not self.stepper.move_robot_led_step(assets.ROBOT_DIRECTIONS.RIGHT, self.speed):
                 return False
         return True
 
@@ -110,7 +110,7 @@ class StateMachine:
                 return False
             toggle_retry += 1
             self.stepper.toggle_io_band()
-        if not self.stepper.move_robot(transition['move'], self.speed):
+        if not self.stepper.move_robot_led_step(transition['move'], self.speed):
             self.execute_with_lock_and_notify(
                 lambda: self.errors.append("Dein Turing Programm hat einen Reject State erreicht."))
             print("Band ended")
@@ -134,7 +134,7 @@ class StateMachine:
             return False
         if not self.go_to_first_color():
             print("Blank io_band, Robot would move out of the LED strip")
-            self.stepper.move_robot(assets.ROBOT_DIRECTIONS.LEFT, self.speed, 30)
+            self.stepper.move_robot_led_step(assets.ROBOT_DIRECTIONS.LEFT, self.speed, 30)
         print("Robot reached the start of input")
         while self.current_state not in self.accept_states:
             self.pause_machine()
