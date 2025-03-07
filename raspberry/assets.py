@@ -20,6 +20,7 @@ IO_BAND_COLORS = Enum('Color', [('RED', 0), ('BLUE', 1), ('BLANK', 2)])
 # LEDs
 LED_AMOUNT = 60
 STEPS_BETWEEN_LEDS = 13
+STEPS_BETWEEN_HOME_TO_FIRST_LED = 20
 
 # directions the robot can move
 ROBOT_DIRECTIONS = Enum('Direction', [('LEFT', 1), ('RIGHT', 2), ('HOLD', 3)])

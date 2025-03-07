@@ -1,9 +1,9 @@
 """
 This module contains the state machine to control the robot.
+The filename is under monument protection, you are not allowed to change it.
 """
 import time
 # pylint: disable=too-many-instance-attributes
-# pylint: todo: disable=fixme
 from threading import Lock
 
 import assets
@@ -49,16 +49,31 @@ class StateMachine:
         for callback in self._listeners:
             callback()
 
-    def home_robot(self):
+    def home_robot(self) -> bool:
         """Homing the robot"""
-        # todo: improve the homing
-        while not lb.get_state():
-            self.stepper.move_robot(assets.ROBOT_DIRECTIONS.LEFT, self.speed)
+        if not self.single_home_step(False, assets.ROBOT_DIRECTIONS.LEFT, 10, 20):
+            return False
+        if not self.single_home_step(True, assets.ROBOT_DIRECTIONS.RIGHT, 5, 20):
+            return False
+        if not self.single_home_step(False, assets.ROBOT_DIRECTIONS.LEFT, 1, 1):
+            return False
+        # Go to first LED
+        if not self.stepper.move_robot(assets.ROBOT_DIRECTIONS.RIGHT, 5, 1):
+            return False
+        print("Robot homed")
+        return True
+
+    def single_home_step(self, lb_state: bool, direction: assets.ROBOT_DIRECTIONS, speed: int,
+                         steps: int) -> bool:
+        """Single step for homing the robot. Drive until the light barrier toggles."""
+        while lb.get_state() == lb_state:
+            if not self.stepper.move_robot(direction, speed, steps):
+                return False
             self.pause_machine()
             if self.should_stop:
                 print("Robot homing stopped by user")
-                return
-        print("Robot homed")
+                return False
+        return True
 
     def go_to_first_color(self):
         """
@@ -127,7 +142,14 @@ class StateMachine:
         """
         self.execute_with_lock_and_notify(
             lambda: (setattr(self, 'running', True), setattr(self, 'should_stop', False)))
-        self.home_robot()
+        if not self.home_robot():
+            print("Robot homing failed")
+            self.execute_with_lock_and_notify(
+                lambda: (setattr(self, 'running', False),
+                         setattr(self, 'pause', False),
+                         setattr(self, 'should_stop', False),
+                         self.errors.append("Der Roboter konnte nicht homen.")))
+            return False
         self.pause_machine()
         if self.should_stop:
             self.stop_by_flag()
