@@ -1,4 +1,4 @@
-//name: Move 10 Steps Right
+name: Move 10 Steps Right (Test)
 init: q0
 accept: qAccept
 

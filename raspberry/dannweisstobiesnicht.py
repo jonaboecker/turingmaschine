@@ -39,6 +39,7 @@ class StateMachine:
         self.should_stop = False
         self.lock = Lock()
         self._listeners = []  # Observer for Changes
+        self.position = 0
         # Flask app for config. Config changes are just supported after StateMachine restart.
         self.app = app
 
@@ -63,6 +64,8 @@ class StateMachine:
         if not self.stepper.move_robot(assets.ROBOT_DIRECTIONS.RIGHT, 5,
                                        self.app.config['STEPS_BETWEEN_HOME_TO_FIRST_LED']):
             return False
+        self.execute_with_lock_and_notify(lambda: (setattr(self, 'position', 1)))
+        print("Position set to " + str(self.position))
         print("Robot homed")
         return True
 
@@ -90,7 +93,11 @@ class StateMachine:
             if self.should_stop:
                 print("Robot go_to_first_color stopped by user")
                 return False
-            if not self.stepper.move_robot_led_step(assets.ROBOT_DIRECTIONS.RIGHT, self.speed):
+            new_position = self.stepper.move_robot_led_step(assets.ROBOT_DIRECTIONS.RIGHT,
+                                                            self.speed)
+            self.execute_with_lock_and_notify(lambda: (setattr(self, 'position', new_position)))
+            print(f"Position set to {self.position}  new Position was {new_position}")
+            if self.position <= 0:
                 return False
         return True
 
@@ -128,10 +135,18 @@ class StateMachine:
                 return False
             toggle_retry += 1
             self.stepper.toggle_io_band()
-        if not self.stepper.move_robot_led_step(transition['move'], self.speed):
+        new_position = self.stepper.move_robot_led_step(transition['move'], self.speed)
+        self.execute_with_lock_and_notify(lambda: (setattr(self, 'position', new_position)))
+        print(f"Position set to {self.position}  new Position was {new_position}")
+        if self.position == 0:
             self.execute_with_lock_and_notify(
-                lambda: self.errors.append("Dein Turing Programm hat einen Reject State erreicht."))
+                lambda: self.errors.append("Dein Turing Programm ist zu groß für das Band."))
             print("Band ended")
+            return False
+        if self.position < 0:
+            self.execute_with_lock_and_notify(
+                lambda: self.errors.append("Es gab ein Problem beim bewegen des Roboters."))
+            print(f"Error while moving the robot, error code: {self.position}")
             return False
         self.execute_with_lock_and_notify(lambda: setattr(self, 'steps', self.steps + 1))
         return True
@@ -159,7 +174,15 @@ class StateMachine:
             return False
         if not self.go_to_first_color():
             print("Blank io_band, Robot would move out of the LED strip")
-            self.stepper.move_robot_led_step(assets.ROBOT_DIRECTIONS.LEFT, self.speed, 30)
+            new_position = self.stepper.move_robot_led_step(assets.ROBOT_DIRECTIONS.LEFT,
+                                                            self.speed,
+                                                            self.app.config['LED_AMOUNT'] / 2)
+            self.execute_with_lock_and_notify(lambda: (setattr(self, 'position', new_position)))
+            if self.position <= 0:
+                self.execute_with_lock_and_notify(
+                    lambda: self.errors.append("Es gab ein Problem beim bewegen des Roboters."))
+                print(f"Error while moving the robot, error code: {self.position}")
+                return False
         print("Robot reached the start of input")
         while self.current_state not in self.accept_states:
             self.pause_machine()

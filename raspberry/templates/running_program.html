@@ -17,8 +17,8 @@
     {{ flash_message() }}
     {{ htwg_icon("Es bewegt sich") }}
 
-    <div class="flex flex-col items-center justify-center my-8">
-        <h1 id="program_name" class="text-2xl font-bold mb-4">{{ infos.program_name }}</h1>
+    <div class="flex flex-col items-center justify-center my-2">
+        <h1 id="program_name" class="text-2xl font-bold mb-1">{{ infos.program_name }}</h1>
 
         <!-- Errors -->
         <div id="errors" class="">
@@ -28,10 +28,16 @@
         </div>
 
         <!-- State display -->
-        <div class="text-lg font-medium">State: <span id="state"
-                                                      class="italic">{{ infos.state }}</span></div>
-        <div class="text-sm text-gray-500">Steps: <span id="steps"
-                                                        class="italic">{{ infos.step }}</span></div>
+        <div class="text-lg font-medium">Aktueller TM State: <span id="state"
+                                                      class="italic">{{ infos.state }}</span>
+        </div>
+        <div class="text-sm text-gray-500">Ausgeführte Schritte: <span id="steps"
+                                                        class="italic">{{ infos.step }}</span>
+        </div>
+        <div class="text-sm text-gray-500">Aktuelle Position: <span id="position"
+                                                           class="italic">{{ infos.position }}
+            {% if infos.position == 0 %} (unbekannte Position, Homing) {% endif %}</span>
+        </div>
 
         <!-- Controls -->
         <div class="flex items-center gap-4 mt-4">
@@ -52,7 +58,7 @@
         </div>
 
         <!-- Speed Control -->
-        <div class="flex items-center mt-6 gap-4">
+        <div class="flex items-center mt-4 gap-4">
             <label for="speed" class="text-sm font-medium">Speed:</label>
             <input type="range" id="speed" name="speed" min="1" max="10" class="w-48"
                    value="{{ infos.speed }}">

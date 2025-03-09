@@ -86,6 +86,7 @@ def broadcast_machine_state():
             'program_name': MACHINE.program_name,
             'state': MACHINE.current_state,
             'step': MACHINE.steps,
+            'position': MACHINE.position,
             'run': MACHINE.running,
             'pause': MACHINE.pause,
             'speed': MACHINE.speed,
@@ -263,7 +264,8 @@ def running_program():
         'pause': MACHINE.pause,
         'speed': MACHINE.speed,
         'errors': MACHINE.errors,
-        'should_stop': MACHINE.should_stop
+        'should_stop': MACHINE.should_stop,
+        'position': MACHINE.position
     }
     return render_template('running_program.html', infos=infos), 200
 
