@@ -90,18 +90,18 @@ class StepperMotorController:
             speed (int): The speed of the robot.
             steps (int): The amount of LEDs the robot should move.
         """
-        from app import app
         # Count the new position
         if direction == assets.ROBOT_DIRECTIONS.LEFT:
             self.current_position -= steps
         elif direction == assets.ROBOT_DIRECTIONS.RIGHT:
             self.current_position += steps
         # Check if the new position is inside band
-        if self.current_position < 1 or self.current_position > app.config['LED_AMOUNT']:
+        if self.current_position < 1 or self.current_position > self.app.config['LED_AMOUNT']:
             return False
-        return self.move_robot(direction, speed, app.config['STEPS_BETWEEN_LEDS'] * steps)
+        return self.move_robot(direction, speed, self.app.config['STEPS_BETWEEN_LEDS'] * steps)
 
-    def move_robot(self, direction: assets.ROBOT_DIRECTIONS, speed: int = 5, steps: int = 1):
+    def move_robot(self, direction: assets.ROBOT_DIRECTIONS, speed: int = 5,
+                   steps: int = 1) -> bool:
         """
         Moves the robot in the specified direction by the specified amount of steps.
         :return: False if the robot would move out of the LED strip. Else True
@@ -115,7 +115,7 @@ class StepperMotorController:
         if platform.system() == "Linux":
             drict = "LEFT" if direction == assets.ROBOT_DIRECTIONS.LEFT else "RIGHT"
             command = f"MOVE {drict} {delay_in_ms} {steps}"
-            return self.send_command(command)
+            return self.send_command(command) != 0
         print(f"Move robot: direction: {direction} delay_in_ms: {delay_in_ms} steps: {steps}")
         time.sleep(delay_in_ms / 10)
         return True

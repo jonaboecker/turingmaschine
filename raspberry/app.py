@@ -8,8 +8,7 @@ import json
 import ctypes
 from pprint import pprint
 from threading import Thread
-from flask import (Flask, request, redirect, url_for, render_template, flash, send_from_directory,
-                   jsonify)
+from flask import (Flask, request, redirect, url_for, render_template, flash, send_from_directory)
 from flask_socketio import SocketIO, emit
 
 import assets
