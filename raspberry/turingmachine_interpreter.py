@@ -148,6 +148,18 @@ def _map_symbol(symbol: str):
             return symbol
 
 
+def _map_direction(direction: str) -> assets.ROBOT_DIRECTIONS:
+    match direction:
+        case "<":
+            return assets.ROBOT_DIRECTIONS.LEFT
+        case ">":
+            return assets.ROBOT_DIRECTIONS.RIGHT
+        case "-":
+            return assets.ROBOT_DIRECTIONS.HOLD
+        case _:
+            return assets.ROBOT_DIRECTIONS.HOLD
+
+
 def _parse_io_instruction(instruction, current_state, symbol):
     """
     Parses a single transition instruction in io syntax.
@@ -193,7 +205,7 @@ def _parse_io_instruction(instruction, current_state, symbol):
         return {
             "new_state": new_state,
             "write_symbol": write_symbol,
-            "move": move
+            "move": _map_direction(move)
         }
 
     return None
@@ -237,6 +249,6 @@ def _parse_com_syntax(lines, turing_machine):
             turing_machine["state_transitions"][(match[0], _map_symbol(match[1]))] = {
                 "new_state": match[2],
                 "write_symbol": _map_symbol(match[3]),
-                "move": match[4]
+                "move": _map_direction(match[4])
             }
             string = ""
