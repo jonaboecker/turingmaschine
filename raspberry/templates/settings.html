@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block body %}
+    {{ flash_message() }}
+    {{ htwg_icon("Mach nix kaputt hier!") }}
+    <form id="configForm" action="/settings" method="post" enctype=multipart/form-data>
+        <div class="mt-4 mb-2 flex flex-row gap-x-4">
+            {{ input_field(id='LED_AMOUNT', label='Anzahl LEDs auf Band', type='number', value=config.LED_AMOUNT, required=true) }}
+            {{ input_field(id='STEPS_BETWEEN_LEDS', label='Schritte zwischen LEDs', type='number', value=config.STEPS_BETWEEN_LEDS, required=true) }}
+            {{ input_field(id='STEPS_BETWEEN_HOME_TO_FIRST_LED', label='Schritte zwischen Home und erster LED', type='number', value=config.STEPS_BETWEEN_HOME_TO_FIRST_LED, required=true) }}
+        </div>
+        <div class="mt-4 mb-2 flex flex-row gap-x-4">
+            {{ input_field(id='TOGGLE_IO_BAND_RETRYS', label='Anzahl versuche um Button zu drücken', type='number', value=config.TOGGLE_IO_BAND_RETRYS, required=true) }}
+            {{ input_field(id='UPLOAD_FOLDER', label='Standardordner für Programmupload', value=config.UPLOAD_FOLDER, required=true) }}
+        </div>
+        <button
+                class="mt-2 bg-blue-500 text-white font-bold
+                            py-1.5 px-3 border border-blue-700 rounded"
+                type="submit">
+            Einstellungen Speichern
+        </button>
+        <p class="mb-2 text-sm text-gray-500">Deine Einstellungen werden erst für das nächste
+            gestartete Turing-Programm aktiv.</p>
+    </form>
+{% endblock %}

@@ -9,10 +9,6 @@ import assets
 if platform.system() == "Linux":
     import serial
 
-SERIAL_PORT = "/dev/ttyACM0"
-BAUDRATE = 9600
-TIMEOUT = 2
-
 SPEED_DELAY_MAP = {
     1: 55,
     2: 50,
@@ -26,6 +22,7 @@ SPEED_DELAY_MAP = {
     10: 10
 }
 
+
 class StepperMotorController:
     """
     Controls the stepper motors via a serial connection.
@@ -36,7 +33,14 @@ class StepperMotorController:
       - MOVE <direction> <speed> <steps>
     """
     current_position = 1
-    def __init__(self, serial_port=SERIAL_PORT, baudrate=BAUDRATE, timeout=TIMEOUT):
+
+    def __init__(self,
+                 app,
+                 serial_port=assets.SERIAL_PORT,
+                 baudrate=assets.BAUDRATE,
+                 timeout=assets.TIMEOUT):
+        # Flask app for config. Config changes are just supported after StateMachine restart.
+        self.app = app
         if platform.system() == "Linux":
             try:
                 self.ser = serial.Serial(serial_port, baudrate, timeout=timeout)
@@ -86,17 +90,18 @@ class StepperMotorController:
             speed (int): The speed of the robot.
             steps (int): The amount of LEDs the robot should move.
         """
+        from app import app
         # Count the new position
         if direction == assets.ROBOT_DIRECTIONS.LEFT:
             self.current_position -= steps
         elif direction == assets.ROBOT_DIRECTIONS.RIGHT:
             self.current_position += steps
         # Check if the new position is inside band
-        if self.current_position < 1 or self.current_position > assets.LED_AMOUNT:
+        if self.current_position < 1 or self.current_position > app.config['LED_AMOUNT']:
             return False
-        return self.move_robot(direction, speed, assets.STEPS_BETWEEN_LEDS * steps)
+        return self.move_robot(direction, speed, app.config['STEPS_BETWEEN_LEDS'] * steps)
 
-    def move_robot(self, direction: assets.ROBOT_DIRECTIONS, speed: int = 5, steps: int= 1):
+    def move_robot(self, direction: assets.ROBOT_DIRECTIONS, speed: int = 5, steps: int = 1):
         """
         Moves the robot in the specified direction by the specified amount of steps.
         :return: False if the robot would move out of the LED strip. Else True

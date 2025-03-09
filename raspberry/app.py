@@ -4,30 +4,71 @@ It defines the routes and its associated functions.
 """
 
 import os
+import json
 import ctypes
 from pprint import pprint
 from threading import Thread
-from flask import (Flask, request, redirect, url_for, render_template, flash, send_from_directory)
+from flask import (Flask, request, redirect, url_for, render_template, flash, send_from_directory,
+                   jsonify)
 from flask_socketio import SocketIO, emit
 
-from assets import UPLOAD_FOLDER, PROGRAM_LANGUAGES, ALLOWED_EXTENSIONS
+import assets
 import turingmachine_interpreter as tm_interp
 import dannweisstobiesnicht as sm
 
 # pylint: disable=global-statement
 app = Flask(__name__)
-# socketio = SocketIO(app)
-socketio = SocketIO(app, cors_allowed_origins="*")  # CORS korrekt konfigurieren
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 MACHINE: sm.StateMachine | None = None
 CURRENT_MACHINE_THREAD: Thread | None = None
 
-# ------------------------------------------------------------------------------------------
+# INIT--------------------------------------------------------------------------------------
 # Set the secret key to some random bytes. Keep this really secret!
-# app.secret_key = os.environ.get('Flask_Secret_Key_WISSINGER')
+# app.secret_key = os.environ.get('ENVIRONMENT_SECRET_KEY')
 app.secret_key = 'this is a very secure secret key which we will definitely replace later'
-# Konfiguration für den Upload-Ordner
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+
+def load_config():
+    """Loads and returns the config from the config.json file. Fallback to default values."""
+    if os.path.exists(assets.CONFIG_PATH):
+        with open(assets.CONFIG_PATH, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return {  # Fallback
+        "LED_AMOUNT": assets.LED_AMOUNT,
+        "STEPS_BETWEEN_LEDS": assets.STEPS_BETWEEN_LEDS,
+        "STEPS_BETWEEN_HOME_TO_FIRST_LED": assets.STEPS_BETWEEN_HOME_TO_FIRST_LED,
+        "TOGGLE_IO_BAND_RETRYS": assets.TOGGLE_IO_BAND_RETRYS,
+        "UPLOAD_FOLDER": assets.UPLOAD_FOLDER
+    }
+
+
+app.config.update(load_config())  # Set the config values
+
+# CONFIG------------------------------------------------------------------------------------
+
+CONFIG_FIELDS = ["LED_AMOUNT", "STEPS_BETWEEN_LEDS", "STEPS_BETWEEN_HOME_TO_FIRST_LED",
+                 "TOGGLE_IO_BAND_RETRYS", "UPLOAD_FOLDER"]
+
+@app.route('/settings', methods=['GET', 'POST'])
+def settings():
+    """Renders the settings page and updates config on POST request."""
+    if request.method == 'GET':
+        config = {key: app.config[key] for key in CONFIG_FIELDS}
+        return render_template('settings.html', config=config), 200
+    for key in CONFIG_FIELDS:
+        if key in request.form:
+            try:
+                app.config[key] = type(app.config[key])( request.form[key]) # Check Type
+            except ValueError:
+                flash(f'Ungültiger Wert für {key}', 'error')
+                return redirect(url_for('settings'))
+
+    # save new config in config.json persistently
+    with open(assets.CONFIG_PATH, "w", encoding="utf-8") as f:
+        json.dump({key: app.config[key] for key in CONFIG_FIELDS}, f)
+    flash('Einstellungen erfolgreich aktualisiert!', 'success')
+    return redirect(url_for('settings'))
 
 
 # WEB-SOCKET--------------------------------------------------------------------------------
@@ -100,22 +141,21 @@ def handle_command(data):
 def index():
     """Renders the index page."""
     programms = os.listdir(app.config['UPLOAD_FOLDER'])
-    languages = [lang.value for lang in PROGRAM_LANGUAGES]
+    languages = [lang.value for lang in assets.PROGRAM_LANGUAGES]
     return render_template('index.html', languages=languages,
                            programms=programms), 200
 
 
-# Funktion, um Dateiendungen zu prüfen
 def allowed_file(filename):
     """Checks if the file extension is allowed."""
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in assets.ALLOWED_EXTENSIONS
 
 
 # pylint: disable=too-many-return-statements
 @app.route('/upload', methods=['POST'])
 def upload_file():
     """Handles the uploaded file."""
-    language = PROGRAM_LANGUAGES(request.form['language'])
+    language = assets.PROGRAM_LANGUAGES(request.form['language'])
     if not language:
         flash('Keine oder unbekannte Sprache ausgewählt', 'error')
         return redirect(url_for('index'))
@@ -144,7 +184,6 @@ def upload_file():
     file.save(filepath)
     flash(f"Datei {file.filename} erfolgreich hochgeladen!", 'success')
     # analyze file
-    # file_path = '/mnt/data/palindrome.txt'
     tm_code = tm_interp.parse_turing_machine(filepath, language)
     pprint(tm_code)
     if tm_code["errors"] or tm_code["warnings"]:
@@ -183,7 +222,7 @@ def run_program():
     if not program:
         flash('Kein Programm ausgewählt', 'error')
         return redirect(url_for('index'))
-    language = PROGRAM_LANGUAGES(request.form['language'])
+    language = assets.PROGRAM_LANGUAGES(request.form['language'])
     if not language:
         flash('Keine oder unbekannte Sprache ausgewählt', 'error')
         return redirect(url_for('index'))
@@ -197,7 +236,7 @@ def run_program():
                                warnings=tm_code["warnings"], tm_code=tm_code), 200
 
     # Create and start a new machine
-    MACHINE = sm.StateMachine(tm_code)
+    MACHINE = sm.StateMachine(tm_code, app)
     MACHINE.add_listener(broadcast_machine_state)
 
     def background_task():
@@ -289,6 +328,4 @@ def robots():
 
 # MAIN------------------------------------------------------------------
 if __name__ == '__main__':
-    # socketio.run(app)  # Startet den SocketIO-Server
     socketio.run(app, host="0.0.0.0", port=5000)
-    # app.run()

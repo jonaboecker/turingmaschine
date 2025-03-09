@@ -25,8 +25,8 @@ class StateMachine:
     }
     """
 
-    def __init__(self, tm_code):
-        self.stepper = sm.StepperMotorController()
+    def __init__(self, tm_code, app):
+        self.stepper = sm.StepperMotorController(app)
         self.accept_states = tm_code['accept']
         self.current_state = tm_code['init']
         self.state_transitions = tm_code['state_transitions']
@@ -38,7 +38,9 @@ class StateMachine:
         self.pause = False
         self.should_stop = False
         self.lock = Lock()
-        self._listeners = []  # Observer für Änderungen
+        self._listeners = []  # Observer for Changes
+        # Flask app for config. Config changes are just supported after StateMachine restart.
+        self.app = app
 
     def add_listener(self, callback):
         """Registriere eine Callback-Funktion, die bei Änderungen aufgerufen wird."""
@@ -53,12 +55,13 @@ class StateMachine:
         """Homing the robot"""
         if not self.single_home_step(False, assets.ROBOT_DIRECTIONS.LEFT, 10, 20):
             return False
-        if not self.single_home_step(True, assets.ROBOT_DIRECTIONS.RIGHT, 5, 20):
+        if not self.single_home_step(False, assets.ROBOT_DIRECTIONS.RIGHT, 5, 20):
             return False
         if not self.single_home_step(False, assets.ROBOT_DIRECTIONS.LEFT, 1, 1):
             return False
         # Go to first LED
-        if not self.stepper.move_robot(assets.ROBOT_DIRECTIONS.RIGHT, 5, 1):
+        if not self.stepper.move_robot(assets.ROBOT_DIRECTIONS.RIGHT, 5,
+                                       self.app.config['STEPS_BETWEEN_HOME_TO_FIRST_LED']):
             return False
         print("Robot homed")
         return True
@@ -119,7 +122,7 @@ class StateMachine:
             lambda: setattr(self, 'current_state', transition['new_state']))
         toggle_retry = 0
         while cs.get_color() != transition['write_symbol']:
-            if toggle_retry >= assets.TOGGLE_IO_BAND_RETRYS:
+            if toggle_retry >= self.app.config['TOGGLE_IO_BAND_RETRYS']:
                 self.execute_with_lock_and_notify(
                     lambda: self.errors.append("Das IO-Band kann nicht bearbeitet werden."))
                 return False

@@ -9,10 +9,6 @@ from random import randrange
 
 import assets
 
-# Name of the C++ source file and the executable
-CPP_FILE = "color_sensor.cpp"
-EXE_FILE = "./color_sensor"
-
 def compile_cpp():
     """Compiles the C++ program using the Makefile."""
     try:
@@ -27,7 +23,7 @@ def compile_cpp():
 def run_cpp():
     """Runs the compiled C++ program and returns the detected color."""
     try:
-        result = subprocess.run([EXE_FILE], capture_output=True, text=True, check=True)
+        result = subprocess.run([assets.EXE_FILE], capture_output=True, text=True, check=True)
         return result.stdout.strip()
     except subprocess.CalledProcessError as e:
         print("Error while executing the C++ program:", e.stderr)
@@ -41,20 +37,13 @@ def get_color():
         IO_BAND_COLORS: The detected color as an Enum ('RED', 'BLUE', or 'BLANK'),
                         or None in case of an error.
     """
+    # If not running on Linux, return a random color for testing purposes
     if platform.system() != "Linux":
         random_color = assets.IO_BAND_COLORS(randrange(3))
         print(f"Random detected and returned color: {random_color}")
         return random_color
     # Check if the compiled executable exists, otherwise compile it
-    if not os.path.exists(EXE_FILE):
+    if not os.path.exists(assets.EXE_FILE):
         compile_cpp()
     detected_color = run_cpp()
     return assets.IO_BAND_COLORS[detected_color]  # Example: assets.IO_BAND_COLORS['RED']
-
-# Test function call
-#if __name__ == "__main__":
-#    color = get_color()
-#    if color:
-#        print(f"Detected color: {color.name}")
-#    else:
-#        print("No valid color detected.")

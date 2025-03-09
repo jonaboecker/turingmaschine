@@ -1,8 +1,7 @@
 {% extends "base.html" %}
 
 {% block extraScript %}
-    <!-- Socket.IO Bibliothek -->
-    {#    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>#}
+    <!-- Socket.IO Libary -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"
             integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg=="
             crossorigin="anonymous"></script>
@@ -10,7 +9,7 @@
             integrity="sha512-aMGMvNYu8Ue4G+fHa359jcPb1u+ytAF+P2SCb+PxrjCdO3n3ZTxJ30zuH39rimUggmTwmh2u7wvQsDTHESnmfQ=="
             crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js"></script>
-    <!-- Deine Websocket-Logik -->
+    <!-- Websocket-logic -->
     <script src="{{ url_for('static', filename='js/websocket_running_machine.js') }}"></script>
 {% endblock %}
 
@@ -19,7 +18,6 @@
     {{ htwg_icon("Es bewegt sich") }}
 
     <div class="flex flex-col items-center justify-center my-8">
-        <!-- Title -->
         <h1 id="program_name" class="text-2xl font-bold mb-4">{{ infos.program_name }}</h1>
 
         <!-- Errors -->
@@ -28,7 +26,6 @@
                 <p class="text-red-500">{{ error }}</p>
             {% endfor %}
         </div>
-
 
         <!-- State display -->
         <div class="text-lg font-medium">State: <span id="state"

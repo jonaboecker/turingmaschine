@@ -22,8 +22,25 @@ LED_AMOUNT = 60
 STEPS_BETWEEN_LEDS = 13
 STEPS_BETWEEN_HOME_TO_FIRST_LED = 20
 
+# the amount of retries for the robot to toggle the io band before giving up
+TOGGLE_IO_BAND_RETRYS = 10
+
+# Path to the configuration file for dynamically changing the configuration
+CONFIG_PATH = 'static/config.json'
+
 # directions the robot can move
 ROBOT_DIRECTIONS = Enum('Direction', [('LEFT', 1), ('RIGHT', 2), ('HOLD', 3)])
 
-# the amount of retries for the robot to toggle the io band before giving up
-TOGGLE_IO_BAND_RETRYS = 10
+# Light barrier configuration
+SENSOR_PIN = 17 # gpiod pin for the light barrier
+CHIP = "/dev/gpiochip0"  # Standard GPIO-Chip auf dem Raspberry Pi 5
+
+# Stepper motor configuration
+SERIAL_PORT = "/dev/ttyACM0"
+BAUDRATE = 9600
+TIMEOUT = 2
+
+# Color sensor configuration
+# Name of the C++ source file and the executable
+CPP_FILE = "color_sensor.cpp" # Name of the C++ source file
+EXE_FILE = "./color_sensor" # Name of the C++ executable
