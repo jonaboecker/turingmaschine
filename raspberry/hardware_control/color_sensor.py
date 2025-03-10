@@ -12,7 +12,7 @@ import assets
 def compile_cpp():
     """Compiles the C++ program using the Makefile."""
     try:
-        subprocess.run(["make"], capture_output=True, text=True, check=True)
+        subprocess.run(["hardware_control/make"], capture_output=True, text=True, check=True)
         # Compilation successful, return True
         return True
     except subprocess.CalledProcessError as e:
