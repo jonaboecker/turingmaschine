@@ -56,7 +56,7 @@ class StateMachine:
         """Homing the robot"""
         if not self.single_home_step(False, assets.ROBOT_DIRECTIONS.LEFT, 10, 20):
             return False
-        if not self.single_home_step(False, assets.ROBOT_DIRECTIONS.RIGHT, 5, 20):
+        if not self.single_home_step(True, assets.ROBOT_DIRECTIONS.RIGHT, 5, 20):
             return False
         if not self.single_home_step(False, assets.ROBOT_DIRECTIONS.LEFT, 1, 1):
             return False

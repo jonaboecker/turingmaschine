@@ -27,5 +27,8 @@ def get_state():
         bool: state The of the light barrier (True if blocked, False if not blocked).
     """
     if platform.system() == "Linux":
-        return line_request.get_value(assets.SENSOR_PIN) == 1
+        state = line_request.get_value(assets.SENSOR_PIN) == 1
+        print(f"Light barrier: Returned {state}.")
+        return state
+    print("Light barrier: Simulated -> Returned Light Barrier is blocked (True).")
     return True  # simulated value for non-Raspberry-Pi-Systems
