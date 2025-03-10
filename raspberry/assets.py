@@ -32,7 +32,7 @@ CONFIG_PATH = 'static/config.json'
 ROBOT_DIRECTIONS = Enum('Direction', [('LEFT', 1), ('RIGHT', 2), ('HOLD', 3)])
 
 # Light barrier configuration
-SENSOR_PIN = 17 # gpiod pin for the light barrier
+SENSOR_PIN = 18 # gpiod pin for the light barrier
 CHIP = "/dev/gpiochip0"  # Standard GPIO-Chip auf dem Raspberry Pi 5
 
 # Stepper motor configuration
