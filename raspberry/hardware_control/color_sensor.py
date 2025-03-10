@@ -11,13 +11,12 @@ import assets
 
 def compile_cpp():
     """Compiles the C++ program using the Makefile."""
+    compile_command = ["g++", "color_sensor.cpp", "-o", "color_sensor", "-lwiringPi"]
     try:
-        subprocess.run(["hardware_control/make"], capture_output=True, text=True, check=True)
-        # Compilation successful, return True
+        subprocess.run(compile_command, capture_output=True, text=True, check=True)
         return True
     except subprocess.CalledProcessError as e:
-        # Print the error output if compilation fails
-        print("❌ Compilation failed:", e.stderr)
+        print("❌ Kompilierung fehlgeschlagen:", e.stderr)
         return False
 
 def run_cpp():
