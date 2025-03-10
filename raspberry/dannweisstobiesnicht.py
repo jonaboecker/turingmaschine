@@ -9,7 +9,6 @@ from threading import Lock
 import assets
 import hardware_control.color_sensor as cs
 import hardware_control.stepper_motor as sm
-import hardware_control.light_barrier as lb
 
 
 class StateMachine:
@@ -72,7 +71,7 @@ class StateMachine:
     def single_home_step(self, lb_state: bool, direction: assets.ROBOT_DIRECTIONS, speed: int,
                          steps: int) -> bool:
         """Single step for homing the robot. Drive until the light barrier toggles."""
-        while lb.get_state() == lb_state:
+        while self.stepper.get_lb_state() == lb_state:
             if not self.stepper.move_robot(direction, speed, steps):
                 return False
             self.pause_machine()

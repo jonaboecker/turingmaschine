@@ -1,8 +1,9 @@
 """
-Stepper Motor Control via Serial (UART) with Arduino.
+This module contains Stepper Motor and Light Barrier Control via Serial (UART) with Arduino.
 """
 import time
 import platform
+from random import randrange
 
 import assets
 
@@ -143,3 +144,18 @@ class StepperMotorController:
             return self.send_command(command) != 0
         time.sleep(delay_in_ms / 10)
         return True
+
+    def get_lb_state(self) -> bool:
+        """
+        Get the state of the light barrier.
+
+        Returns:
+            bool: state The of the light barrier (True if blocked, False if not blocked).
+        """
+        if platform.system() == "Linux":
+            state = self.send_command("LIGHT") == 1
+            print(f"Light barrier: Returned {state}.")
+            return state
+        state = randrange(2) == 1
+        print(f"Light barrier: (Simulated) Returned {state}.")
+        return state  # simulated value for non-Raspberry-Pi-Systems
