@@ -179,9 +179,9 @@ void handleSetup() {
   stepper.begin(RPM, Microsteps);
   stepper2.begin(RPM, Microsteps_Arm);
   
-  // Activate motors
-  digitalWrite(Sleep, HIGH);
-  digitalWrite(Sleep_Arm, HIGH);
+  // Deactivate motors
+  digitalWrite(Sleep, LOW);
+  digitalWrite(Sleep_Arm, LOW);
   
   Serial.println("Setup complete.");
   WRITE_SERIAL1(1);
