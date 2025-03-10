@@ -10,18 +10,17 @@ if platform.system() == "Linux":
     import serial
 
 SPEED_DELAY_MAP = {
-    1: 45,
-    2: 40,
-    3: 35,
-    4: 30,
-    5: 25,
-    6: 20,
-    7: 15,
-    8: 13,
+    1: 50,
+    2: 45,
+    3: 40,
+    4: 35,
+    5: 30,
+    6: 25,
+    7: 20,
+    8: 15,
     9: 10,
     10: 7
 }
-
 
 class StepperMotorController:
     """
@@ -50,14 +49,30 @@ class StepperMotorController:
                 print(f"Error opening serial port: {e}")
                 raise e
 
+    def wait_for_ack(self, timeout=assets.TIMEOUT):
+        """
+        Waits for a serial response from the Arduino.
+        Accepts only messages that start with "ACK:".
+        """
+        start_time = time.time()
+        while time.time() - start_time < timeout:
+            if self.ser.in_waiting:
+                line = self.ser.readline().decode('utf-8').strip()
+                # Consider only ACK messages
+                if line.startswith("ACK:"):
+                    ack_val = line.split("ACK:")[1]
+                    return ack_val == "1"
+        return False
+
     def send_command(self, command: str) -> int:
-        """Sends a command and returns 1 if successful, 0 otherwise."""
+        """
+        Sends a command to the Arduino and waits for confirmation.
+        Returns 1 if the confirmation ("1") is received, otherwise 0.
+        """
         try:
-            encoded_cmd = (command + "\n").encode('utf-8')
-            bytes_written = self.ser.write(encoded_cmd)
-            time.sleep(0.1)
-            expected_bytes = len(encoded_cmd)
-            return bytes_written == expected_bytes
+            full_command = (command + "\n").encode('utf-8')
+            self.ser.write(full_command)
+            return self.wait_for_ack()
         except serial.SerialTimeoutException:
             print("Timeout error: Command could not be sent in time.")
             return 0

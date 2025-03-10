@@ -1,58 +1,56 @@
-#include <Arduino.h>
+  #include <Arduino.h>
 #include <string.h>
 #include <stdlib.h>
 #include "A4988.h"
 
-// ----- Macro for conditional use of Serial1 -----
+// ----- Makro zur bedingten Nutzung von Serial1 -----
 #ifdef Serial1
-  #define WRITE_SERIAL1(val) Serial1.write(val)
+  #define WRITE_SERIAL1(val) Serial1.println("ACK:" val)
 #else
-  #define WRITE_SERIAL1(val) // Serial1 not available
+  #define WRITE_SERIAL1(val) Serial.println("ACK:" val)
 #endif
+// ----- Pin-Zuweisungen für den Haupt-Schrittmotor -----
+const int Step    = 3;    // STEP-Pin
+const int Dire    = 2;    // DIRECTION-Pin
+const int Sleep   = 4;    // SLEEP-Pin
+const int MS1     = 7;    // Microstep-Einstellung
+const int MS2     = 6;    // Microstep-Einstellung
+const int MS3     = 5;    // Microstep-Einstellung
 
-// ----- Pin Assignments for Main Stepper Motor -----
-const int Step    = 3;    // STEP pin
-const int Dire    = 2;    // DIRECTION pin
-const int Sleep   = 4;    // SLEEP pin
-const int MS1     = 5;    // Microstep setting
-const int MS2     = 6;    // Microstep setting
-const int MS3     = 7;    // Microstep setting
+// ----- Pin-Zuweisungen für den Arm-Schrittmotor -----
+const int Step_Arm   = 9;   // STEP-Pin
+const int Dire_Arm   = 8;   // DIRECTION-Pin
+const int Sleep_Arm  = 10;  // SLEEP-Pin
+const int MS1_Arm    = 13;  // Microstep-Einstellung
+const int MS2_Arm    = 12;  // Microstep-Einstellung
+const int MS3_Arm    = 11;  // Microstep-Einstellung
 
-// ----- Pin Assignments for Arm Stepper Motor -----
-const int Step_Arm   = 9;    // STEP pin
-const int Dire_Arm   = 8;    // DIRECTION pin
-const int Sleep_Arm  = 10;   // SLEEP pin
-const int MS1_Arm    = 11;   // Microstep setting
-const int MS2_Arm    = 12;   // Microstep setting
-const int MS3_Arm    = 13;   // Microstep setting
+// ----- Motor-Spezifikationen -----
+const int spr = 200;      // Schritte pro Umdrehung
+int RPM = 20;             // Drehzahl (Umdrehungen pro Minute)
+int Microsteps = 8;       // Microstepping (z. B. 8 = 1:8)
+int Microsteps_Arm = 8;
 
-// ----- Motor Specifications -----
-const int spr = 200;      // Steps per revolution
-const int RPM = 20;       // Rotations per minute
-const int Microsteps = 8; // Microstepping (e.g., 8 = 1:8 microstepping)
-const int Microsteps_Arm = 8;
-
-// ----- Motor Instantiation -----
-// Ensure the parameter order matches your library specifications!
+// ----- Motor-Instanzen -----
 A4988 stepper(spr, Dire, Step, MS1, MS2, MS3);
 A4988 stepper2(spr, Dire_Arm, Step_Arm, MS1_Arm, MS2_Arm, MS3_Arm);
 
-// Function prototypes for command handlers
+// Prototypen der Handler-Funktionen für die einzelnen Befehle
 void toggleHandler(char* args);
 void setupHandler(char* args);
 void cleanupHandler(char* args);
 void moveHandler(char* args);
 
-// Function pointer type for command handlers
+// Funktionszeiger-Typ für Kommandohandler
 typedef void (*CommandHandler)(char* args);
 
-// Command structure
+// Struktur für ein Kommando
 struct Command {
   const char* name;
   CommandHandler handler;
 };
 
-// Command dispatch table
+// Dispatch-Tabelle für Befehle
 Command commands[] = {
   {"TOGGLE",  toggleHandler},
   {"SETUP",   setupHandler},
@@ -63,39 +61,35 @@ Command commands[] = {
 const int numCommands = sizeof(commands) / sizeof(Command);
 
 //
-// --- Functions for parsing and dispatching serial input ---
+// --- Funktion zum Parsen und Dispatchen der seriellen Eingabe ---
 //
-
-/**
- * Reads a line from the serial interface, parses it,
- * and dispatches it to the appropriate handler function.
- */
 void processSerialInput() {
+  digitalWrite(Sleep, LOW);
   if (Serial.available() > 0) {
-    // Read incoming command until newline character
+    // Lese den eingehenden Befehl bis zum Newline-Zeichen
     String commandStr = Serial.readStringUntil('\n');
-    commandStr.trim(); // Remove leading and trailing spaces
+    commandStr.trim(); // Entferne überflüssige Leerzeichen
     if (commandStr.length() == 0) return;
     
     Serial.print("Received command: ");
     Serial.println(commandStr);
     
-    // Copy string into a buffer (C-string) for further processing
+    // Kopiere den String in einen Puffer (C-String)
     char commandBuffer[64];
     commandStr.toCharArray(commandBuffer, sizeof(commandBuffer));
     
-    // First token = command
+    // Erster Token = Kommando
     char* token = strtok(commandBuffer, " ");
     if (token == NULL) return;
     
-    // The rest of the line (parameters) is passed to the handler function
-    char* args = strtok(NULL, "\n");  // Everything until end of line
+    // Rest der Zeile als Argumente
+    char* args = strtok(NULL, "\n");  
     if (args == NULL) {
       static char empty[] = "";
       args = empty;
     }
     
-    // Dispatch: Search for the command in the table
+    // Suche in der Dispatch-Tabelle nach dem passenden Befehl
     bool found = false;
     for (int i = 0; i < numCommands; i++) {
       if (strcmp(token, commands[i].name) == 0) {
@@ -111,10 +105,10 @@ void processSerialInput() {
 }
 
 //
-// --- Handler functions for parsing parameters ---
+// --- Handler-Funktionen ---
 //
-
 void toggleHandler(char* args) {
+  // Keine Parameter benötigt
   handleToggle();
 }
 
@@ -127,41 +121,56 @@ void cleanupHandler(char* args) {
 }
 
 void moveHandler(char* args) {
-  // Expected format: <direction> <delay> <steps>
+  digitalWrite(Sleep, LOW);
+  // Erwartetes Format: <direction> <delay_ms> <steps>
   char* token = strtok(args, " ");
-  if(token == NULL) { Serial.println("MOVE: missing direction"); return; }
+  if (token == NULL) { 
+    Serial.println("MOVE: missing direction"); 
+    return; 
+  }
   const char* direction = token;
-  
+
   token = strtok(NULL, " ");
-  if(token == NULL) { Serial.println("MOVE: missing delay"); return; }
+  if (token == NULL) { 
+    Serial.println("MOVE: missing delay"); 
+    return; 
+  }
   int delay_ms = atoi(token);
-  
+
   token = strtok(NULL, " ");
-  if(token == NULL) { Serial.println("MOVE: missing steps"); return; }
+  if (token == NULL) { 
+    Serial.println("MOVE: missing steps"); 
+    return; 
+  }
   int steps = atoi(token);
-  
+
+  Serial.print("MOVE: direction: ");
+  Serial.print(direction);
+  Serial.print(", delay_ms: ");
+  Serial.print(delay_ms);
+  Serial.print(", steps: ");
+  Serial.println(steps);
   handleMove(direction, delay_ms, steps);
 }
 
 //
-// --- Functions for executing commands ---
+// --- Funktionen zur Ausführung der Befehle ---
 //
-
 void handleToggle() {
-  Serial.println("TOGGLE command received: Simulating keypress.");
+  Serial.println("TOGGLE command received: Simuliere Tastendruck.");
   digitalWrite(Sleep_Arm, HIGH);
-  stepper2.rotate(20);
-  delay(100);
   stepper2.rotate(-20);
-  Serial.println("Pressed");
+  delay(100);
+  stepper2.rotate(20);
+  Serial.println("Tastendruck simuliert.");
   digitalWrite(Sleep_Arm, LOW);
-  WRITE_SERIAL1(1);
+  WRITE_SERIAL1("1");
 }
 
 void handleSetup() {
-  Serial.println("SETUP command received: Re-initializing hardware.");
+  Serial.println("SETUP command received: Hardware wird neu initialisiert.");
   
-  // Configure pins as outputs
+  // Konfiguriere die Pins als Outputs
   pinMode(Step, OUTPUT);
   pinMode(Dire, OUTPUT);
   pinMode(Sleep, OUTPUT);
@@ -169,30 +178,29 @@ void handleSetup() {
   pinMode(Dire_Arm, OUTPUT);
   pinMode(Sleep_Arm, OUTPUT);
   
-  // Set initial state
+  // Setze Anfangszustand
   digitalWrite(Step, LOW);
   digitalWrite(Dire, LOW);
   digitalWrite(Step_Arm, LOW);
   digitalWrite(Dire_Arm, LOW);
   
-  // Reinitialize stepper motors
+  // Initialisiere die Schrittmotoren
   stepper.begin(RPM, Microsteps);
   stepper2.begin(RPM, Microsteps_Arm);
   
-  // Deactivate motors
   digitalWrite(Sleep, LOW);
   digitalWrite(Sleep_Arm, LOW);
   
-  Serial.println("Setup complete.");
-  WRITE_SERIAL1(1);
+  Serial.println("Setup abgeschlossen.");
+  WRITE_SERIAL1("1");
 }
 
 void handleCleanup() {
-  Serial.println("CLEANUP command received: Putting motors into sleep mode.");
+  Serial.println("CLEANUP command received: Motoren werden in den Schlafmodus versetzt.");
   digitalWrite(Sleep, LOW);
   digitalWrite(Sleep_Arm, LOW);
-  Serial.println("Motors put into sleep mode.");
-  WRITE_SERIAL1(1);
+  Serial.println("Motoren im Schlafmodus.");
+  WRITE_SERIAL1("1");
 }
 
 void handleMove(const char* direction, int delay_ms, int steps) {
@@ -208,20 +216,18 @@ void handleMove(const char* direction, int delay_ms, int steps) {
       stepper.rotate(-1);
       delay(delay_ms);
     }
-  } else {
-    Serial.println("MOVE: unknown direction.");
-    return;
-  }
+  } else { WRITE_SERIAL1("0");}
   digitalWrite(Sleep, LOW);
-  WRITE_SERIAL1(1);
+  WRITE_SERIAL1("1");
 }
 
 //
-// --- Main program ---
+// --- Hauptprogramm ---
 //
-
 void setup() {
   Serial.begin(9600);
+  
+  // Falls verfügbar, initialisiere Serial1
   #ifdef Serial1
     Serial1.begin(9600);
   #endif
@@ -232,4 +238,3 @@ void setup() {
 void loop() {
   processSerialInput();
 }
-
