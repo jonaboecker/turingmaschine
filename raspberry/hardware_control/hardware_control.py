@@ -141,7 +141,7 @@ class StepperMotorController:
         delay_in_ms = SPEED_DELAY_MAP.get(speed, 10)
         print(f"Move robot: direction: {direction} delay: {delay_in_ms} sm-steps: {steps}")
         if platform.system() == "Linux":
-            drict = "LEFT" if robot.direction == assets.ROBOT_DIRECTIONS.LEFT else "RIGHT"
+            drict = "LEFT" if direction is assets.ROBOT_DIRECTIONS.LEFT else "RIGHT"
             command = f"MOVE {drict} {delay_in_ms} {steps}"
             return self.send_command(command) != 0
         time.sleep(delay_in_ms / 10)
