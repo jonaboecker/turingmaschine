@@ -7,7 +7,7 @@ import time
 from threading import Lock
 
 import assets
-import hardware_control.hardware_control as hc
+import hardware_control as hc
 
 class StateMachine:
     """
