@@ -8,7 +8,7 @@ from collections import defaultdict
 import assets
 from assets import PROGRAM_LANGUAGES
 
-import util
+from semantic_analyzer import semantic_analyzer
 
 
 def parse_turing_machine(file_path, language: PROGRAM_LANGUAGES = PROGRAM_LANGUAGES.COM):
@@ -52,7 +52,7 @@ def parse_turing_machine(file_path, language: PROGRAM_LANGUAGES = PROGRAM_LANGUA
     if turing_machine["errors"]:
         turing_machine["errors"].append("Syntaxprüfung Fehlgeschlagen.")
 
-    return util.semantic_analyzer(turing_machine)
+    return semantic_analyzer(turing_machine)
 
 
 # pylint: disable=too-many-branches
