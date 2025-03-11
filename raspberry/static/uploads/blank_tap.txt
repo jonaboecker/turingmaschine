@@ -1,0 +1,11 @@
+name: Turn all the lights on and move out of band (Test)
+init: q0
+
+q0,_
+q0,0,>
+
+q0,0
+q0,0,>
+
+q0,1
+q0,1,>
