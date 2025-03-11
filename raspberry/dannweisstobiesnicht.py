@@ -118,7 +118,7 @@ class StateMachine:
         """
         transition = self.state_transitions.get((self.current_state, self.stepper.get_color()))
         if transition is None:
-            print(f"No transition found for state {self.current_state} and color {self.stepper.get_color()}")
+            print(f"No transition for {self.current_state}, color {self.stepper.get_color()}")
             self.execute_with_lock_and_notify(
                 lambda: self.errors.append("Dein Turing Programm hat einen Reject State erreicht."))
             return False
