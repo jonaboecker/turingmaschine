@@ -116,16 +116,16 @@ class StateMachine:
             bool: True if the step was executed successfully,
                   False if there was no transition for the current step.
         """
-        transition = self.state_transitions.get((self.current_state, hd.get_color()))
+        transition = self.state_transitions.get((self.current_state, hc.get_color()))
         if transition is None:
-            print(f"No transition found for state {self.current_state} and color {hd.get_color()}")
+            print(f"No transition found for state {self.current_state} and color {hc.get_color()}")
             self.execute_with_lock_and_notify(
                 lambda: self.errors.append("Dein Turing Programm hat einen Reject State erreicht."))
             return False
         self.execute_with_lock_and_notify(
             lambda: setattr(self, 'current_state', transition['new_state']))
         toggle_retry = 0
-        while hd.get_color() != transition['write_symbol']:
+        while hc.get_color() != transition['write_symbol']:
             if toggle_retry >= self.app.config['TOGGLE_IO_BAND_RETRYS']:
                 self.execute_with_lock_and_notify(
                     lambda: self.errors.append("Das IO-Band kann nicht bearbeitet werden."))
