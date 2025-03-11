@@ -59,11 +59,13 @@ class StepperMotorController:
         while time.time() - start_time < timeout:
             if self.ser.in_waiting:
                 line = self.ser.readline().decode('utf-8').strip()
-                # Consider only ACK messages
                 if line.startswith("ACK:"):
                     ack_val = line.split("ACK:")[1]
-                    return ack_val == "1"
-        return False
+                    return ack_val
+            time.sleep(0.01)
+        print("Timeout beim Warten auf ACK.")
+        return 0
+
 
     def send_command(self, command: str) -> int:
         """
@@ -139,7 +141,7 @@ class StepperMotorController:
         delay_in_ms = SPEED_DELAY_MAP.get(speed, 10)
         print(f"Move robot: direction: {direction} delay: {delay_in_ms} sm-steps: {steps}")
         if platform.system() == "Linux":
-            drict = "LEFT" if direction is assets.ROBOT_DIRECTIONS.LEFT else "RIGHT"
+            drict = "LEFT" if robot.direction == assets.ROBOT_DIRECTIONS.LEFT else "RIGHT"
             command = f"MOVE {drict} {delay_in_ms} {steps}"
             return self.send_command(command) != 0
         time.sleep(delay_in_ms / 10)
@@ -159,3 +161,16 @@ class StepperMotorController:
         state = randrange(2) == 1
         print(f"Light barrier: (Simulated) Returned {state}.")
         return state  # simulated value for non-Raspberry-Pi-Systems
+
+    def get_color(self):
+        """
+        Retrieves the detected color from the color sensor.
+
+        Returns:
+            IO_BAND_COLORS: The detected color as an Enum ('RED', 'BLUE', or 'BLANK'),
+                            or None in case of an error.
+        """
+        if platform.system() != "Linux":
+            random_color = assets.IO_BAND_COLORS(randrange(3))
+            return random_color
+        return assets.IO_BAND_COLORS(int(self.send_command("COLOR")))

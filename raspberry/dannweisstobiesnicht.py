@@ -7,9 +7,7 @@ import time
 from threading import Lock
 
 import assets
-import hardware_control.color_sensor as cs
-import hardware_control.stepper_motor as sm
-
+import hardware_control.hardware_control as hc
 
 class StateMachine:
     """
@@ -25,7 +23,7 @@ class StateMachine:
     """
 
     def __init__(self, tm_code, app):
-        self.stepper = sm.StepperMotorController(app)
+        self.stepper = hc.StepperMotorController(app)
         self.accept_states = tm_code['accept']
         self.current_state = tm_code['init']
         self.state_transitions = tm_code['state_transitions']
@@ -87,7 +85,7 @@ class StateMachine:
             bool: True if the robot reached the first color,
                   False if the robot would move out of the LED strip.
         """
-        while cs.get_color() == assets.IO_BAND_COLORS.BLANK:
+        while hc.get_color() == assets.IO_BAND_COLORS.BLANK:
             self.pause_machine()
             if self.should_stop:
                 print("Robot go_to_first_color stopped by user")
@@ -118,16 +116,16 @@ class StateMachine:
             bool: True if the step was executed successfully,
                   False if there was no transition for the current step.
         """
-        transition = self.state_transitions.get((self.current_state, cs.get_color()))
+        transition = self.state_transitions.get((self.current_state, hd.get_color()))
         if transition is None:
-            print(f"No transition found for state {self.current_state} and color {cs.get_color()}")
+            print(f"No transition found for state {self.current_state} and color {hd.get_color()}")
             self.execute_with_lock_and_notify(
                 lambda: self.errors.append("Dein Turing Programm hat einen Reject State erreicht."))
             return False
         self.execute_with_lock_and_notify(
             lambda: setattr(self, 'current_state', transition['new_state']))
         toggle_retry = 0
-        while cs.get_color() != transition['write_symbol']:
+        while hd.get_color() != transition['write_symbol']:
             if toggle_retry >= self.app.config['TOGGLE_IO_BAND_RETRYS']:
                 self.execute_with_lock_and_notify(
                     lambda: self.errors.append("Das IO-Band kann nicht bearbeitet werden."))
