@@ -85,7 +85,8 @@ class StateMachine:
             bool: True if the robot reached the first color,
                   False if the robot would move out of the LED strip.
         """
-        while hc.stepper.get_color() == assets.IO_BAND_COLORS.BLANK:
+        while self
+        self.stepper.get_color() == assets.IO_BAND_COLORS.BLANK:
             self.pause_machine()
             if self.should_stop:
                 print("Robot go_to_first_color stopped by user")
@@ -116,16 +117,16 @@ class StateMachine:
             bool: True if the step was executed successfully,
                   False if there was no transition for the current step.
         """
-        transition = self.state_transitions.get((self.current_state, hc.stepper.get_color()))
+        transition = self.state_transitions.get((self.current_state, self.stepper.get_color()))
         if transition is None:
-            print(f"No transition found for state {self.current_state} and color {hc.stepper.get_color()}")
+            print(f"No transition found for state {self.current_state} and color {self.stepper.get_color()}")
             self.execute_with_lock_and_notify(
                 lambda: self.errors.append("Dein Turing Programm hat einen Reject State erreicht."))
             return False
         self.execute_with_lock_and_notify(
             lambda: setattr(self, 'current_state', transition['new_state']))
         toggle_retry = 0
-        while hc.stepper.get_color() != transition['write_symbol']:
+        while self.stepper.get_color() != transition['write_symbol']:
             if toggle_retry >= self.app.config['TOGGLE_IO_BAND_RETRYS']:
                 self.execute_with_lock_and_notify(
                     lambda: self.errors.append("Das IO-Band kann nicht bearbeitet werden."))
