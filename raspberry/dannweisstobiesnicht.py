@@ -136,7 +136,7 @@ class StateMachine:
         new_position = self.stepper.move_robot_led_step(transition['move'], self.speed)
         self.execute_with_lock_and_notify(lambda: (setattr(self, 'position', new_position)))
         print(f"Position set to {self.position}  new Position was {new_position}")
-        if self.position == 0:
+        if self.position == -2:
             self.execute_with_lock_and_notify(
                 lambda: self.errors.append("Dein Turing Programm ist zu groß für das Band."))
             print("Band ended")
@@ -174,7 +174,7 @@ class StateMachine:
             print("Blank io_band, Robot would move out of the LED strip")
             new_position = self.stepper.move_robot_led_step(assets.ROBOT_DIRECTIONS.LEFT,
                                                             self.speed,
-                                                            self.app.config['LED_AMOUNT'] / 2)
+                                                            int(self.app.config['LED_AMOUNT'] / 2))
             self.execute_with_lock_and_notify(lambda: (setattr(self, 'position', new_position)))
             if self.position <= 0:
                 self.execute_with_lock_and_notify(

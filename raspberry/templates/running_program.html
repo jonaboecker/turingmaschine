@@ -36,7 +36,8 @@
         </div>
         <div class="text-sm text-gray-500">Aktuelle Position: <span id="position"
                                                            class="italic">{{ infos.position }}
-            {% if infos.position == 0 %} (unbekannte Position, Homing) {% endif %}</span>
+            {% if infos.position == 0 %} (unbekannte Position, Homing) {% endif %}
+            {% if infos.position == -2 %} (Bandende erreicht) {% endif %}</span>
         </div>
 
         <!-- Controls -->

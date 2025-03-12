@@ -100,8 +100,8 @@ class StepperMotorController:
     def move_robot_led_step(self, direction: assets.ROBOT_DIRECTIONS, speed=1, steps=1) -> int:
         """
         Moves the robot by one LED step in the specified direction.
-        :return:    0 if the robot would move out of the LED strip,
-                    -1 if there was an error while moving the robot,
+        :return:    -2 if the robot would move out of the LED strip,
+                    -1 if there was an error while moving the robot
                     else current LED position.
 
         Args:
@@ -117,7 +117,7 @@ class StepperMotorController:
             self.current_position += steps
         # Check if the new position is inside band
         if self.current_position < 1 or self.current_position > self.app.config['LED_AMOUNT']:
-            return 0
+            return -2
         if not self.move_robot(direction, speed, self.app.config['STEPS_BETWEEN_LEDS'] * steps):
             print(
                 f"Error: Robot failed to move while \"Move robot: direction: {direction} "
