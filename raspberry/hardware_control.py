@@ -75,7 +75,7 @@ class StepperMotorController:
         try:
             full_command = (command + "\n").encode('utf-8')
             self.ser.write(full_command)
-            return self.wait_for_ack()
+            return int(self.wait_for_ack())
         except serial.SerialTimeoutException:
             print("Timeout error: Command could not be sent in time.")
             return 0
@@ -155,9 +155,7 @@ class StepperMotorController:
             bool: state The of the light barrier (True if blocked, False if not blocked).
         """
         if platform.system() == "Linux":
-            state = self.send_command("LIGHT")
-            print(f"Light barrier: Arduino Returned {state}.")
-            state = state == 1
+            state = self.send_command("LIGHT") == 1
             print(f"Light barrier: get_lb_state will return {state}.")
             return state
         state = randrange(2) == 1
@@ -175,4 +173,6 @@ class StepperMotorController:
         if platform.system() != "Linux":
             random_color = assets.IO_BAND_COLORS(randrange(3))
             return random_color
-        return assets.IO_BAND_COLORS(int(self.send_command("COLOR")))
+        color = assets.IO_BAND_COLORS(int(self.send_command("COLOR")))
+        print(f"get color: {color}")
+        return color
