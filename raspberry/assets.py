@@ -38,4 +38,4 @@ CHIP = "/dev/gpiochip0"  # Standard GPIO-Chip auf dem Raspberry Pi 5
 # arduino communication configuration
 SERIAL_PORT = "/dev/ttyACM0"
 BAUDRATE = 9600
-TIMEOUT = 2
+TIMEOUT = 30
