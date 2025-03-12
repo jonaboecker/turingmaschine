@@ -35,12 +35,7 @@ ROBOT_DIRECTIONS = Enum('Direction', [('LEFT', 1), ('RIGHT', 2), ('HOLD', 3)])
 SENSOR_PIN = 18 # gpiod pin for the light barrier
 CHIP = "/dev/gpiochip0"  # Standard GPIO-Chip auf dem Raspberry Pi 5
 
-# Stepper motor configuration
+# arduino communication configuration
 SERIAL_PORT = "/dev/ttyACM0"
 BAUDRATE = 9600
 TIMEOUT = 2
-
-# Color sensor configuration
-# Name of the C++ source file and the executable
-CPP_FILE = "color_sensor.cpp" # Name of the C++ source file
-EXE_FILE = "./color_sensor" # Name of the C++ executable

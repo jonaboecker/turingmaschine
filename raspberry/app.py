@@ -299,19 +299,6 @@ def download_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 
-# PWA-------------------------------------------------------------------
-@app.route('/manifest.json', methods=['GET'])
-def serve_manifest():
-    """Serves the manifest.json file."""
-    return send_from_directory(app.static_folder, 'pwa/manifest.json'), 200
-
-
-@app.route('/service-worker.js', methods=['GET'])
-def serve_service_worker():
-    """Serves the service-worker.js file."""
-    return send_from_directory(app.static_folder, 'pwa/service-worker.js'), 200
-
-
 # ERROR-----------------------------------------------------------------
 @app.errorhandler(404)
 def page_not_found(e):

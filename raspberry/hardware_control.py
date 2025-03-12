@@ -156,7 +156,8 @@ class StepperMotorController:
         """
         if platform.system() == "Linux":
             state = self.send_command("LIGHT") == 1
-            print(f"Light barrier: Returned {state}.")
+            print(f"Light barrier: Arduino Returned {state}.")
+            print(f"Light barrier: get_lb_state will return {state}.")
             return state
         state = randrange(2) == 1
         print(f"Light barrier: (Simulated) Returned {state}.")
