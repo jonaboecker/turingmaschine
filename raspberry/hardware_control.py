@@ -173,4 +173,6 @@ class StepperMotorController:
         if platform.system() != "Linux":
             random_color = assets.IO_BAND_COLORS(randrange(3))
             return random_color
-        return assets.IO_BAND_COLORS(int(self.send_command("COLOR")))
+        color = assets.IO_BAND_COLORS(int(self.send_command("COLOR")))
+        print(f"get color: {color}")
+        return color

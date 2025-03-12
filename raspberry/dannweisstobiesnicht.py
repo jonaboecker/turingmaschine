@@ -85,6 +85,7 @@ class StateMachine:
             bool: True if the robot reached the first color,
                   False if the robot would move out of the LED strip.
         """
+        print("Robot moving to first color")
         while self.stepper.get_color() == assets.IO_BAND_COLORS.BLANK:
             self.pause_machine()
             if self.should_stop:
